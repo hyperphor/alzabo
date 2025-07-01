@@ -66,8 +66,7 @@
        alzabo-schema
        (ju/schppit alzabo)))
 
-    
 #_
-(convert "/Users/mt/repos/api-server/common/api/openapi.yaml"
-         "/opt/mtravers/os/alzabo/resources/ganymede-openapi.edn")
+(convert "resources/petstore.yaml"
+         "resources/petstore.edn")
       
