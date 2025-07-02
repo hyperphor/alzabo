@@ -8,6 +8,7 @@
                  [hiccup "1.0.5"]
                  [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
+                 [camel-snake-kebab "0.4.3"]
                  ;; Clojurescript
                  [org.clojure/clojurescript "1.10.520"]
                  [org.candelbio/multitool "0.1.5"]

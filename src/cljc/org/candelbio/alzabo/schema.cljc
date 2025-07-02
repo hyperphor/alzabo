@@ -1,5 +1,8 @@
 (ns org.candelbio.alzabo.schema
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [org.candelbio.multitool.core :as u]
+            [camel-snake-kebab.core :as csk]
+            ))
 
 ;;; TODO need a required/optional flag or equivalent.
 ;;; TODO Schema validation isn't working, it didn't detect when I was stupidly using :description instead of :doc
@@ -52,11 +55,36 @@
     schema
     (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)}))))
 
+(defn kebab
+  [v]
+  (keyword (csk/->kebab-case v)))
+
+(defn infer-enums
+  [s]
+  (let [new-enums (atom [])
+        ns
+        (clojure.walk/postwalk
+         (fn [thing]
+           (if (and (map-entry? thing)
+                    (= :enumerated (:type (second thing))))
+             (let [[field fd] thing
+                   values (:values fd)
+                   enum (u/keyword-conc field "enum")]
+               (swap! new-enums conj [enum {:values (zipmap (map (comp keyword kebab) values) values)}])
+               [field (-> fd
+                          (assoc :type enum)
+                          (dissoc :values))])
+             thing))
+         s)]
+    (update s :enums merge (into {} @new-enums))))
+
+
 #?
 (:clj
- 
- 
  (defn read-schema
    [source]
-   (validate-schema
-    (read-string (slurp source)))))
+   (-> source
+       slurp
+       read-string
+       infer-enums
+       validate-schema)))

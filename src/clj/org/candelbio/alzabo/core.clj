@@ -25,7 +25,6 @@
        "/"
        path))
 
-
 (defn- schema
   []
   (let [schema
