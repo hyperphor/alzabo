@@ -55,9 +55,23 @@
     schema
     (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)}))))
 
+;;; One in multitool is broken
+(defn strip-chars
+  "Removes every character of a given set from a string"
+  [removed s]
+  (apply str (remove #((set removed) %) s)))
+
+(defn clean-string
+  [s]
+  (strip-chars "()," s))
+
 (defn kebab
   [v]
-  (keyword (csk/->kebab-case v)))
+  (-> v
+      name
+      clean-string
+      csk/->kebab-case
+      keyword))
 
 (defn infer-enums
   [s]
@@ -76,7 +90,7 @@
                           (dissoc :values))])
              thing))
          s)]
-    (update s :enums merge (into {} @new-enums))))
+    (update ns :enums merge (into {} @new-enums))))
 
 
 #?

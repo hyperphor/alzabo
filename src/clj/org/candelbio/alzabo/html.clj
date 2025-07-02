@@ -35,6 +35,16 @@
         (kind-html k)))
      "]"]))
 
+(defn kind-html+
+  [{:keys [type min max] :as fieldprops}]
+  (cond (= :numeric type)
+        (str (kind-html type)
+             (when min
+               (str [min max])))
+        :else
+        (kind-html type)))
+        
+
 (def primitives #{:long :float :string :boolean :instant :keyword}) ; :ref
 
 (defn- linkify
@@ -55,7 +65,7 @@
 (def kind-metadata-colums
   [{:display (fn [fieldprops] [:span {:style (style-arg {:white-space "nowrap"})} (:id fieldprops)])
     :heading "attribute"}
-   {:display (fn [fieldprops] (kind-html (:type fieldprops)))
+   {:display kind-html+
     :heading "type"}
    {:display :cardinality
     :heading "cardinality"}
@@ -187,8 +197,9 @@
             (let [kinds (category-name groups)
                   category (category-name categories)]
               [:div
-               [:h3 {:style (header-style (:color category))}
-                (:label category)]
+               (when (:label category)
+                 [:h3 {:style (header-style (:color category))}
+                  (:label category)])
                [:ul
                 (for [kind (sort-by :id kinds)]
                   (html [:li (kind-html (:id kind))]))]
