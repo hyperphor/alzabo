@@ -3,15 +3,21 @@
   :url "http://github.com/candelbio/alzabo"
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
-  :dependencies [;; Clojure 
-                 [org.clojure/clojure "1.11.3"]
-                 [hiccup "1.0.5"]
+  :dependencies [
+                 [org.candelbio/multitool "0.1.12"]
+                 [camel-snake-kebab "0.4.3"]
+
+                 ;; Clojure 
+                 [org.clojure/clojure "1.12.1"]
+                 [hiccup "2.0.0"]
                  [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
-                 [camel-snake-kebab "0.4.3"]
+
+
+                 [com.walmartlabs/lacinia "1.2.2"]
+
                  ;; Clojurescript
-                 [org.clojure/clojurescript "1.10.520"]
-                 [org.candelbio/multitool "0.1.5"]
+                 [org.clojure/clojurescript "1.12.42"]
                  [reagent  "0.8.1"]
                  [re-frame "0.10.6"]
                  ]

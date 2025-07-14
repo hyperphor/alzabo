@@ -2,6 +2,7 @@
   (:require [clojure.spec.alpha :as s]
             [org.candelbio.multitool.core :as u]
             [camel-snake-kebab.core :as csk]
+            [clojure.string :as str]
             ))
 
 ;;; TODO need a required/optional flag or equivalent.
@@ -73,6 +74,13 @@
       csk/->kebab-case
       keyword))
 
+(defn humanize
+  [term]
+  (when term
+    (-> term
+        name
+        (str/replace "_" " "))))
+
 (defn infer-enums
   [s]
   (let [new-enums (atom [])
@@ -84,7 +92,10 @@
              (let [[field fd] thing
                    values (:values fd)
                    enum (u/keyword-conc field "enum")]
-               (swap! new-enums conj [enum {:values (zipmap (map (comp keyword kebab) values) values)}])
+               (swap! new-enums
+                      conj
+                      [enum {:values (zipmap (map (comp keyword kebab) values)
+                                             (map humanize values))}])
                [field (-> fd
                           (assoc :type enum)
                           (dissoc :values))])
