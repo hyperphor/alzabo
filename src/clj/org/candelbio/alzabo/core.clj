@@ -82,3 +82,8 @@
   [config command & args]
   (main-guts config command)
   (System/exit 0))
+
+(defn main
+  [config command & args]
+  (main-guts config command)
+  )

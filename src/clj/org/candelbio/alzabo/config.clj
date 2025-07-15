@@ -4,6 +4,8 @@
             [org.candelbio.multitool.core :as u])
   )
 
+;;; See resources/default-config.edn
+
 (def the-config (atom nil))
 (def config-path (atom nil))
 
@@ -24,10 +26,6 @@
   [& keys]
   (assert @the-config "Config not set")
   (get-in @the-config keys))
-
-
-
-;;; TODO document or default config vars here
 
 (defn output-path
   [filename]
