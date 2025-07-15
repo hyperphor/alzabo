@@ -5,5 +5,5 @@
  :width 100
  :height 64
  :orientation :horizontal
- ;; TODO color
+ :categories {:default {:color "#a9cce3"}}
  }

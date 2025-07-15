@@ -176,7 +176,8 @@
 
 (defn- index->html
   [{:keys [kinds enums version title categories] :as schema} tag-version]
-  (let [groups (group-by #(get % :category :default) (vals (u/self-label :id kinds)))]
+  (let [categories (or categories (config/config :categories)) ;TODO kludge
+        groups (group-by #(get % :category :default) (vals (u/self-label :id kinds)))]
     (html
      [:div.container
       [:div.header
@@ -256,7 +257,8 @@
 ;;; TODO if this gets any more complex, consider replacing with https://github.com/daveray/dorothy
 (defn- write-graphviz
   [{:keys [kinds enums categories] :as schema} dot-file]
-  (let [clean (fn [kind] (s/replace (name kind) \- \_))
+  (let [categories (or categories (config/config :categories)) ;TODO kludge
+        clean (fn [kind] (s/replace (name kind) \- \_))
         attributes
         (fn [m & [sep]]
           ;; For some reason graph attributes need a different separator
