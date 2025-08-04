@@ -66,12 +66,19 @@
   [s]
   (strip-chars "()," s))
 
+;;; Kebab, but handle some strings separately
+(defn safe-kebab-case
+  [s]
+  (if (= \- (last s))
+    s
+    (csk/->kebab-case s)))
+
 (defn kebab
   [v]
   (-> v
       name
       clean-string
-      csk/->kebab-case
+      safe-kebab-case
       keyword))
 
 (defn humanize
@@ -80,6 +87,14 @@
     (-> term
         name
         (str/replace "_" " "))))
+
+;;; → Multitool - this is the cheap-ass way to do BK's 2-way structs. Not efficient of course
+(defn struct-parent
+  [struct thing]
+  (u/walk-find-path 
+   #(= % thing) struct))
+
+
 
 (defn infer-enums
   [s]
@@ -91,7 +106,9 @@
                     (= :enumerated (:type (second thing))))
              (let [[field fd] thing
                    values (:values fd)
-                   enum (u/keyword-conc field "enum")]
+                   kind (let [[_ path] (struct-parent s thing)]
+                          (second (reverse path)))
+                   enum (u/keyword-conc kind field "enum")]
                (swap! new-enums
                       conj
                       [enum {:values (zipmap (map (comp keyword kebab) values)

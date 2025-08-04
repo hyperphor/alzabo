@@ -61,10 +61,14 @@
     (write-alzabo schema)
     (output/write-schema (datomic/datomic-schema schema)
                          (config/output-path "datomic-schema.edn"))
+    ;; ?
+    #_
     (output/write-schema (candel/metamodel schema)
                          (config/output-path "metamodel.edn"))
 
     ))
+
+
 
 ;;; Split out for testing
 (defn main-guts

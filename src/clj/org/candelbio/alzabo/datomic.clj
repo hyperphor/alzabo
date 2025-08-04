@@ -29,8 +29,7 @@
                        {:db/ident (keyword (name class-name) (name field-name))
                         :db/doc doc
                         :db/cardinality (if (= :many cardinality) :db.cardinality/many :db.cardinality/one)
-                        :db/unique (or (if unique (keyword "db.unique" (name unique)))
-                                       (if unique-id :db.unique/identity)) ;this is just for backward compatibility, :unique-id is deprecated
+                        :db/unique (when unique :db.unique/identity) ;TODO support :db.unique/value see https://docs.datomic.com/schema/identity.html
                         :db/index index
                         :db/valueType datomic-type
                         ;; heterogenous tuples https://docs.datomic.com/on-prem/schema.html
@@ -47,7 +46,7 @@
     (mapcat (fn [[enum-type {:keys [values doc]}]]
               (map (fn [[enum doc]]
                      (u/clean-map
-                      {:db/ident enum
+                      {:db/ident (keyword (name enum-type) (name enum))
                        :db/doc (and enum-doc? doc)
                        }))
                    values))
