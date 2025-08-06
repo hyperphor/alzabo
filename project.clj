@@ -6,6 +6,7 @@
   :dependencies [
                  [org.candelbio/multitool "0.1.12"]
                  [camel-snake-kebab "0.4.3"]
+                 [aero "1.1.6"]
 
                  ;; Clojure 
                  [org.clojure/clojure "1.12.1"]

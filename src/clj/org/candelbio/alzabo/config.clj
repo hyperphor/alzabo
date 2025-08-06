@@ -1,6 +1,9 @@
 (ns org.candelbio.alzabo.config
   (:require [clojure.edn :as edn]
+            [aero.core :as aero]
+            [clojure.java.io :as io]
             [me.raynes.fs :as fs]
+            [clojure.string :as str]
             [org.candelbio.multitool.core :as u])
   )
 
@@ -9,12 +12,16 @@
 (def the-config (atom nil))
 (def config-path (atom nil))
 
+(defmethod aero/reader 'split
+  [_ _ [s]]
+  (and s (str/split s #",")))
+
 (defn set-config!
   [config]                              ;filename or map
   (let [config (if (string? config)
                  (do
                    (reset! config-path config)
-                   (edn/read-string (slurp config)))
+                   (aero/read-config config))
                  config)]
     (reset! the-config config)))
 
