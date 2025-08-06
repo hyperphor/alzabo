@@ -1,4 +1,4 @@
-(defproject org.candelbio/alzabo "1.2.0"
+(defproject org.candelbio/alzabo "1.2.1"
   :description "Semantic schema format and tools, for Datomic and other uses."
   :url "http://github.com/candelbio/alzabo"
   :license {:name "Apache 2 License"
@@ -12,7 +12,6 @@
                  [hiccup "2.0.0"]
                  [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
-
 
                  [com.walmartlabs/lacinia "1.2.2"]
 
