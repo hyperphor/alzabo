@@ -16,12 +16,16 @@
   [_ _ [s]]
   (and s (str/split s #",")))
 
+(def default-config "resources/default-config.edn")
+
 (defn set-config!
   [config]                              ;filename or map
   (let [config (if (string? config)
                  (do
                    (reset! config-path config)
-                   (aero/read-config config))
+                   (merge (aero/read-config default-config) ; shouldn't Aero be able to do this? 
+                          (aero/read-config config) 
+                         ))
                  config)]
     (reset! the-config config)))
 
