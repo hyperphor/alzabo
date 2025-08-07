@@ -16,14 +16,22 @@
   [_ _ [s]]
   (and s (str/split s #",")))
 
-(def default-config "resources/default-config.edn")
+;;; TODO wanted this to be in a resource, but then its hard to get it working when alz is a library...jfc
+(def default-config
+  {
+   :edge-labels? true
+   :width 100
+   :height 64
+   :orientation :horizontal
+   :categories {:default {:color "#a9cce3"}}
+   })
 
 (defn set-config!
   [config]                              ;filename or map
   (let [config (if (string? config)
                  (do
                    (reset! config-path config)
-                   (merge (aero/read-config default-config) ; shouldn't Aero be able to do this? 
+                   (merge default-config ; shouldn't Aero be able to do this? 
                           (aero/read-config config) 
                          ))
                  config)]

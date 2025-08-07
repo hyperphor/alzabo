@@ -68,8 +68,6 @@
 
     ))
 
-
-
 ;;; Split out for testing
 (defn main-guts
   [config command]
