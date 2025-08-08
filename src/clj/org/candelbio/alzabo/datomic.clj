@@ -17,6 +17,12 @@
         :else
         :db.type/ref))
 
+(defn safe-name
+  [v]
+  (if (number? (u/ignore-errors (read-string (name v))))
+    (str "v-" (name v))
+    (name v)))
+
 (defn datomic-schema
   "Generate a Datomic schema transaction from an Alzabo schema"
   [{:keys [kinds enums] :as schema} & [{:keys [enum-doc?] :or {enum-doc? true}}]]
@@ -46,7 +52,7 @@
     (mapcat (fn [[enum-type {:keys [values doc]}]]
               (map (fn [[enum doc]]
                      (u/clean-map
-                      {:db/ident (keyword (name enum-type) (name enum))
+                      {:db/ident (keyword (name enum-type) (safe-name enum))
                        :db/doc (and enum-doc? doc)
                        }))
                    values))

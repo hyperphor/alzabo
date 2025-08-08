@@ -73,13 +73,20 @@
     s
     (csk/->kebab-case s)))
 
-(defn kebab
+(defn reduce-old-candel-shit
+  [s]
+  (if-let [m (re-matches #"\:.*/(.*)" s)]
+    (second m)
+    s))
+
+(defn clean-enum-value
   [v]
   (-> v
       name
       clean-string
+      reduce-old-candel-shit
       safe-kebab-case
-      keyword))
+      #_ keyword))
 
 (defn humanize
   [term]
@@ -111,7 +118,7 @@
                    enum (u/keyword-conc kind field "enum")]
                (swap! new-enums
                       conj
-                      [enum {:values (zipmap (map (comp keyword kebab) values)
+                      [enum {:values (zipmap (map (comp keyword clean-enum-value) values)
                                              (map humanize values))}])
                [field (-> fd
                           (assoc :type enum)
