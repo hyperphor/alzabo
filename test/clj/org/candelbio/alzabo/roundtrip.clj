@@ -28,8 +28,8 @@
         printer (fn [name contents]
                   (prn name (count contents))
                   (pprint contents))]
-    (printer :orig-recreated (u/lset-difference candel-orig recreated))
-    (printer :recreated-orig (u/lset-difference recreated candel-orig))
+    (printer :orig-recreated (u/ldifference candel-orig recreated))
+    (printer :recreated-orig (u/ldifference recreated candel-orig))
     (output/write-schema recreated "roundtrip-datomic.edn")))
 
 ;;; TODO test that roundtrip-datomic.edn is equivalent to "/resources/schema/schema.edn"

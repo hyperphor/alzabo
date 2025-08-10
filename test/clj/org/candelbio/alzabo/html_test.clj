@@ -34,7 +34,7 @@
                ["schema.dot" ".svg"]
                ["schema.dot" ".cmapx"]
                ["alzabo" ".css"]
-               ["js" nil]
+               ["client" ".js"]
                }
              (set files)))
       ;; TODO file contents
