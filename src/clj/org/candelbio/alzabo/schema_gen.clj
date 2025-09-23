@@ -16,7 +16,7 @@
            (every? #{0 1 true false "TRUE" "FALSE" "true" "false"} dvals))
       {:type :boolean}
       (every? int? dvals) {:type :long :min (u/min* dvals) :max (u/max* dvals) }
-      (every? float? dvals) {:type :float :min (u/min* dvals) :max (u/max* dvals) }
+      (every? number? dvals) {:type :float :min (u/min* dvals) :max (u/max* dvals) }
       (> (count dvals) 40) {:type :string}
       :else
       {:type :enumerated :values (sort (map str dvals))});the str is because sometimes ints creep in and it breaks sort
