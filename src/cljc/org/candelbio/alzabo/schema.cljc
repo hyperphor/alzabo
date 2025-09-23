@@ -6,7 +6,6 @@
             [clojure.set :as set]
             ))
 
-;;; TODO need a required/optional flag or equivalent.
 ;;; TODO Schema validation isn't working, it didn't detect when I was stupidly using :description instead of :doc
 
 (def numeric-primitives #{:long :float :number :bigint})
@@ -24,10 +23,40 @@
 (s/def ::cardinality #{:one :many})
 (s/def ::doc string?)
 
-;;; I want to say that ONLY these keys are allowed, which would catch some
-;;; errors. But apparently that is unClojurish or something?
-(s/def ::field (s/keys :req-un []
-                       :opt-un [::type ::cardinality ::doc ::unique ::index ::attribute]))
+;;; Note: this insane rigamarole is so schema can actually detect undefined keys in a map. Should use it eslewhere.
+(defmacro strict-keys [& {:keys [req req-un opt opt-un]}]
+  (let [;; Extract the actual keyword names for validation
+        req-key-names (when req (set req))
+        opt-key-names (when opt (set opt))
+        req-un-key-names (when req-un (set (map #(keyword (name %)) req-un)))
+        opt-un-key-names (when opt-un (set (map #(keyword (name %)) opt-un)))
+        
+        ;; Combine all allowed keys
+        all-keys (set/union (or req-key-names #{})
+                           (or opt-key-names #{})
+                           (or req-un-key-names #{})
+                           (or opt-un-key-names #{}))
+        
+        ;; Required keys for validation
+        required-keys (set/union (or req-key-names #{})
+                                (or req-un-key-names #{}))]
+    
+    `(s/and
+       (s/keys ~@(when req [:req req])
+               ~@(when req-un [:req-un req-un])
+               ~@(when opt [:opt opt])
+               ~@(when opt-un [:opt-un opt-un]))
+       ;; Only allow specified keys
+       #(set/subset? (set (keys %)) ~all-keys)
+       ;; Ensure all required keys are present
+       ~@(when (seq required-keys)
+           [`#(set/subset? ~required-keys (set (keys %)))]))))
+
+(s/def ::field (strict-keys :req-un []
+                            :opt-un [::type ::cardinality ::required? ::unique
+                                     ::doc ;TODO ::examples, ::generator
+                                     ::index ::attribute]))
+
 
 (s/def ::fields (s/map-of keyword? ::field))
 
