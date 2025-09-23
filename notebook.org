@@ -1,0 +1,6 @@
+* Generate a schema
+
+I used Claude Code with prompt
+
+look at the existing schemas, and generate a new one for jazz musicians, bands, songs, recordings, genres, record labels in the same format
+
