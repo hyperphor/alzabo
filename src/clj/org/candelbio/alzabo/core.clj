@@ -18,7 +18,7 @@
   (.browse (java.awt.Desktop/getDesktop)
            (.toURI (java.io.File. file))))
 
-;; TODO → multitool (with some cleanup)
+;;; Will be in multitool
 (defn realize-rel-path
   [base path]
   (str (.getParentFile (fs/file base))

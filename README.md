@@ -1,10 +1,10 @@
 # alzabo
 
-A simple schema management and documentation tool for graph-based systems. [Live example](https://candelbio.github.io/alzabo/).
+A simple schema management and documentation tool for graph-based systems. [Live example](https://candelbio.github.io/alzabo/). TODO this is from an obsolete version, have somethign newer
 
 ![Alzabo](resources/public/screenshot.png)
 
-Alzabo does a number of different tasks centered around a simple schema format for graph databases.
+Alzabo defines a a simple schema format for graph databases or other storage formats. It's semantically close to RDF
 
 Core:
 - Defines an .edn schema format, with semantics similar to RDF.
@@ -20,6 +20,8 @@ Export:
 
 
 ## Schema format
+
+TODO this is out of date or will be. 
 
 Schemas are represented as EDN maps. See [an example](test/resources/schema/rawsugar.edn) or the [schema spec](src/cljc/org/parkerici/alzabo/schema.cljc).
 
@@ -60,10 +62,14 @@ To generate documentation, you need graphviz installed. On the Mac, you can do t
 
     lein with-profile library, prod install
 
-TODO send to clojars
+### Publish on Clojars
+
+TODO
 
 
 ### Generate and view CANDEL schema
+
+TODO deemphasize as main example
 
 Prerequisites:
 - [leiningen](https://leiningen.org/)
@@ -81,6 +87,8 @@ Or, to use a locally (but possibly out of date) version of the schema:
 
 ## Commands
 
+TODO revamp, or at least fix command use of config.
+
 You can run these commands with `lein run <config> <cmd>`. 
 
 	$ lein run documentation 
@@ -97,7 +105,7 @@ Opens the generated documentation in browser..
 
 ## Use as a library
 
-Add dependency `[org.candelbio/alzabo "1.0.0"]` (or whatever the lastest version is)
+Add dependency `[org.candelbio/alzabo <version>]
 
 ### Example
 

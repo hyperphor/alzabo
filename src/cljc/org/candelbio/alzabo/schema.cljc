@@ -3,14 +3,16 @@
             [org.candelbio.multitool.core :as u]
             [camel-snake-kebab.core :as csk]
             [clojure.string :as str]
+            [clojure.set :as set]
             ))
 
 ;;; TODO need a required/optional flag or equivalent.
 ;;; TODO Schema validation isn't working, it didn't detect when I was stupidly using :description instead of :doc
 
-(def primitives #{:long :float :string :boolean :instant :keyword ;Datomic
-                  :number :bigint                                 ;other
-                  })
+(def numeric-primitives #{:long :float :number :bigint})
+(def primitives (set/union
+                 numeric-primitives
+                 #{:string :boolean :instant :keyword}))
 
 ;;; Schema spec
 

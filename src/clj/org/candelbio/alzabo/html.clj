@@ -35,10 +35,10 @@
         (kind-html k)))
      "]"]))
 
-(defn kind-html+
+(defn field-spec-html
   [{:keys [type min max] :as fieldprops}]
-  (cond (= :numeric type)
-        (str (kind-html type)
+  (cond (schema/numeric-primitives type)
+        (str (name type)
              (when min
                (str [min max])))
         :else
@@ -65,7 +65,7 @@
 (def kind-metadata-colums
   [{:display (fn [fieldprops] [:span {:style (style-arg {:white-space "nowrap"})} (:id fieldprops)])
     :heading "attribute"}
-   {:display kind-html+
+   {:display field-spec-html
     :heading "type"}
    {:display :cardinality
     :heading "cardinality"}

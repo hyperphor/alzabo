@@ -54,17 +54,6 @@
     (str (u/expand-template (config :output-path) (config))
          filename))))
 
-;; TODO → multitool (with some cleanup)
-(defn realize-rel-path
-  [base path]
-  (str (.getParentFile (fs/file base))
-       "/"
-       path))
-
-(defn realize-path
-  [path]
-  (realize-rel-path @config-path path))
-
 ;;; This bit of hackery seems to come and go
 ;; TODO → multitool (with some cleanup)
 (defn realize-rel-path
