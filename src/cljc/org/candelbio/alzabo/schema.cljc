@@ -168,3 +168,7 @@
        read-string
        infer-enums
        validate-schema)))
+
+(defn kind-def
+  [schema kind]
+  (assoc (get-in schema [:kinds kind]) :id kind))

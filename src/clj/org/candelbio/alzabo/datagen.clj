@@ -4,7 +4,7 @@
             [org.candelbio.multitool.core :as u]
             [clojure.string :as str]
             [clojure.data.json :as json]
-            [clj-http.client :as http])
+            [org.candelbio.alzabo.llm :as llm])
   (:import [java.time LocalDate LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util UUID]))
@@ -85,37 +85,6 @@
   [date]
   (.format date DateTimeFormatter/ISO_LOCAL_DATE))
 
-;;; LLM integration for realistic names and text
-
-(defn call-llm
-  "Call an LLM API to generate realistic data"
-  [prompt]
-  (if (:llm-enabled? *generation-context*)
-    (try
-      (let [api-key (System/getenv "OPENAI_API_KEY")]
-        (if-not api-key
-          (do
-            (println "OPENAI_API_KEY not found, using fallback data")
-            nil)
-          (let [response (http/post "https://api.openai.com/v1/chat/completions"
-                                    {:headers {"Content-Type" "application/json"
-                                               "Authorization" (str "Bearer " api-key)}
-                                     :body (json/write-str
-                                            {:model "gpt-3.5-turbo"
-                                             :messages [{:role "user" :content prompt}]
-                                             :max_tokens 200
-                                             :temperature 0.8})
-                                     :as :json})]
-            (if (= 200 (:status response))
-              (-> response :body :choices first :message :content str/trim)
-              (do
-                (println "LLM API call failed with status:" (:status response) ", using fallback")
-                nil)))))
-      (catch Exception e
-        (println "LLM call failed:" (.getMessage e))
-        nil))
-    nil))
-
 ;;; Generic data generators
 
 (def common-locations
@@ -130,6 +99,21 @@
   [context]
   (or (call-llm (str "Generate a realistic " context " name. Return only the name, nothing else."))
       (str "Sample " (str/capitalize context))))
+
+;;; TODO count, fictional? as parameters
+;;; TODO should incorporate schema desc in prompt (maybe as system prompt?)
+(defn generate-entities
+  [kind schema]
+  (let [sdef (schema/kind-def schema kind)]
+    (llm/json-query (u/expand-template
+                     "Please give me a list of {{count}} *fictional* {{id}} {{description}} in json format. Fore each, include the following fields: {{fieldlist}}. "
+                     (-> sdef
+                         (assoc :fieldlist (str/join ", " (keys (:fields sdef))))
+                         (assoc :count 10))))))
+                             
+(comment
+  (generate-entities :Genre schema))
+
 
 ;;; Field type generators
 

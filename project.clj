@@ -5,6 +5,7 @@
              :url "https://opensource.org/licenses/Apache-2.0"}
   :dependencies [
                  [org.candelbio/multitool "0.1.12"]
+                 [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
                  [aero "1.1.6"]
 
@@ -18,6 +19,7 @@
 
                  [com.walmartlabs/lacinia "1.2.2"]
 
+                 ;; TODO separate out UI into separate project, this should be a smallish library
                  ;; Clojurescript
                  [org.clojure/clojurescript "1.12.42"]
                  [reagent  "0.8.1"]

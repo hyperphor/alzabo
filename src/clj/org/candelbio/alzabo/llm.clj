@@ -1,0 +1,84 @@
+(ns org.candelbio.alzabo.llm
+  (:require [clj-http.client :as client]
+            [clojure.data.json :as json]
+            #_ [environ.core :as env]
+            [clojure.string :as str]
+            [org.candelbio.multitool.core :as u]
+            ))
+
+;;; TODO investigate Bosquet https://github.com/zmedelis/bosquet
+
+(def system-prompt "You are a music aficionado, critic, and nerdy ontologist") ;TODO JAZZ
+
+(defn api-key
+  []
+  (env/env :openai-api-key))
+
+(defn api-get
+  [url params]
+  (:body
+   (client/get (str "https://api.openai.com/v1" url)
+              {:query-params params
+               :headers {"Authorization" (str "Bearer " (api-key))
+                         "OpenAI-Beta" "assistants=v2"}
+               :as :json
+               })))
+
+(defn list-models
+  []
+  (api-get "/models" {}))
+
+(defn api-post
+  [url q]
+  (:body
+   (client/post (str "https://api.openai.com/v1" url)
+                {:as :json
+                 :headers {"Authorization" (str "Bearer " (api-key))}
+                 :content-type :application/json
+                 :body (json/write-str q)}
+                )))
+
+(defn run-chat-completion
+  [q]
+  (api-post "/chat/completions" q))
+
+(defn text-query
+  [text]
+  (-> {:model "gpt-4"
+       :messages [{:role "system" :content system-prompt}
+                  {:role "user" :content text}
+                  ]}
+      run-chat-completion
+      (get-in [:choices 0 :message :content])
+      ))
+
+(defn read-json-safe
+  [s]
+  (try
+    (json/read-str s :key-fn keyword)
+    (catch Throwable e
+      s)))
+
+;;; Extract code from a llm response (md).
+;;; Assumes a type, assumes only one code block
+;;; Returns [type code non-code-text]
+(defn extract-code
+  [s]
+  (let [[m? type code] (re-find #"```(.*)\n([\s\S]*?)```" s)]
+    (when m?
+      [(keyword type) code (str/replace s m? "")])))
+
+(defn extract-json
+  [s]
+  (let [[type code text] (extract-code s)]
+    (if (= type :json)
+      [(read-json-safe code) text]
+      ;; Or, maybe its a pure json response
+      (or (u/ignore-errors (read-json-safe s))
+          (throw (ex-info "JSON not found in response" {:resp s :type type}))))))
+
+(defn json-query
+  [str]
+  (-> str
+      text-query
+      (extract-json)))
