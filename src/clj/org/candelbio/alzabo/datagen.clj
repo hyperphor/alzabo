@@ -94,6 +94,7 @@
 (def generic-company-suffixes
   ["Inc." "LLC" "Corp." "Company" "Group" "Enterprises" "Solutions" "Systems"])
 
+#_
 (defn generate-realistic-name
   "Generate a realistic name using LLM or fallback to generic name"
   [context]
@@ -102,6 +103,7 @@
 
 ;;; TODO count, fictional? as parameters
 ;;; TODO should incorporate schema desc in prompt (maybe as system prompt?)
+;;; TODO context object
 (defn generate-entities
   [kind schema]
   (let [sdef (schema/kind-def schema kind)]
