@@ -8,11 +8,13 @@
                  [camel-snake-kebab "0.4.3"]
                  [aero "1.1.6"]
 
-                 ;; Clojure 
+                 ;; Clojure
                  [org.clojure/clojure "1.12.1"]
                  [hiccup "2.0.0"]
                  [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
+                 [clj-http "3.12.3"]
+                 [cheshire "5.13.0"]    ;necessary for json parse
 
                  [com.walmartlabs/lacinia "1.2.2"]
 

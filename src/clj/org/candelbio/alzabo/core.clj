@@ -5,8 +5,10 @@
             [org.candelbio.alzabo.html :as html]
             [org.candelbio.alzabo.output :as output]
             [org.candelbio.alzabo.datomic :as datomic]
+            [org.candelbio.alzabo.datagen :as datagen]
             [org.candelbio.multitool.core :as u]
             [me.raynes.fs :as fs]
+            [clojure.data.json :as json]
             )
   (:gen-class))
 
@@ -67,6 +69,24 @@
                          (config/output-path "metamodel.edn"))
 
     ))
+
+(defmethod do-command :generate-data
+  [_ args]
+  (let [schema-data (schema)
+        entity-counts (or (:entity-counts args) {})
+        llm-enabled? (get args :llm-enabled? true)
+        output-format (get args :output-format "edn")]
+    (println "Generating sample data for schema...")
+    (let [generated-data (datagen/generate-sample-data schema-data
+                                                       :entity-counts entity-counts
+                                                       :llm-enabled? llm-enabled?)]
+      (case output-format
+        "edn" (output/write-schema generated-data (config/output-path "sample-data.edn"))
+        "json" (spit (config/output-path "sample-data.json")
+                     (json/write-str generated-data))
+        (println "Unknown output format:" output-format))
+      (println (str "Generated sample data written to "
+                    (config/output-path (str "sample-data." output-format)))))))
 
 ;;; Split out for testing
 (defn main-guts
