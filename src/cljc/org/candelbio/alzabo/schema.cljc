@@ -169,6 +169,28 @@
        infer-enums
        validate-schema)))
 
+;;; Schema introspection utilities
+
+(defn kinds
+  "Get all kind names from a schema"
+  [schema]
+  (keys (get schema :kinds)))
+
+(defn enums
+  "Get all enum names from a schema"
+  [schema]
+  (keys (:enums schema)))
+
 (defn kind-def
   [schema kind]
   (assoc (get-in schema [:kinds kind]) :id kind))
+
+(defn is-reference-type?
+  "Check if a type is a reference to another kind"
+  [type-name schema]
+  (contains? (set (kinds schema)) type-name))
+
+(defn is-enum-type?
+  "Check if a type is an enum"
+  [type-name schema]
+  (contains? (set (enums schema)) type-name))

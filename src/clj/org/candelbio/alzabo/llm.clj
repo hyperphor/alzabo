@@ -68,14 +68,19 @@
     (when m?
       [(keyword type) code (str/replace s m? "")])))
 
+;;; TODO sometimes it returens separate ```json elements! Argh
 (defn extract-json
   [s]
   (let [[type code text] (extract-code s)]
     (if (= type :json)
       [(read-json-safe code) text]
-      ;; Or, maybe its a pure json response
-      (or (u/ignore-errors (read-json-safe s))
-          (throw (ex-info "JSON not found in response" {:resp s :type type}))))))
+      ;; Or, maybe encoded differently
+      (let [xtract (or (re-find #"JSON[\s\S]*?(\[[\s\S]*\])" s)
+                       (re-find  #"(?s)[\s\S]*?(\[\s*\{[\s\S]*\}\s*\])" s))] ;finds [{ ... }]
+        (if xtract
+          [(read-json-safe (second xtract)) s]
+          nil)))))
+
 
 (defn json-query
   [str]
