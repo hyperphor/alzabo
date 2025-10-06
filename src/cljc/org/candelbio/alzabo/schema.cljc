@@ -6,7 +6,6 @@
             [clojure.set :as set]
             ))
 
-;;; TODO Schema validation isn't working, it didn't detect when I was stupidly using :description instead of :doc
 
 (def numeric-primitives #{:long :float :number :bigint})
 (def primitives (set/union
@@ -53,9 +52,10 @@
            [`#(set/subset? ~required-keys (set (keys %)))]))))
 
 (s/def ::field (strict-keys :req-un []
-                            :opt-un [::type ::cardinality ::required? ::unique
+                            :opt-un [::type ::cardinality ::required? ::unique?
                                      ::doc ;TODO ::examples, ::generator
-                                     ::index ::attribute]))
+                                     ::index ::attribute
+                                     ::min ::max]))
 
 
 (s/def ::fields (s/map-of keyword? ::field))
@@ -85,7 +85,9 @@
 (defn validate-schema [schema]
   (if (s/valid? ::schema schema)
     schema
-    (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)}))))
+    (if (nil? (s/explain-data ::schema schema)) ;TODO for some reason even when schema valid, s/valid? fails, but this woorks
+      schema
+      (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)})))))
 
 ;;; One in multitool is broken
 (defn strip-chars

@@ -69,10 +69,10 @@
     :heading "type"}
    {:display :cardinality
     :heading "cardinality"}
-   {:display (comp boold :unique)
-    :heading "unique"}
-   {:display (comp boold :required)
-    :heading "required"}
+   {:display (comp boold :unique?)
+    :heading "unique?"}
+   {:display (comp boold :required?)
+    :heading "required?"}
    {:display (fn [fieldprops] (linkify (:doc fieldprops)))
     :heading "doc"}])
 
