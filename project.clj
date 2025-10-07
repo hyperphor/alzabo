@@ -1,4 +1,4 @@
-(defproject org.candelbio/alzabo "1.2.1"
+(defproject org.candelbio/alzabo "1.2.2"
   :description "Semantic schema format and tools, for Datomic and other uses."
   :url "http://github.com/candelbio/alzabo"
   :license {:name "Apache 2 License"
@@ -14,7 +14,8 @@
                  [hiccup "2.0.0"]
                  [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
-                 [clj-http "3.12.3"]
+
+                 [hato "1.0.0"]         ;replaces clj-http
                  [cheshire "5.13.0"]    ;necessary for json parse
 
                  [com.walmartlabs/lacinia "1.2.2"]
@@ -40,7 +41,7 @@
   :target-path "target/%s"
   :profiles {:library {:prep-tasks ["compile" ["cljsbuild" "once"]]
                        }
-             :uberjar {:aot :all
+             :uberjar {;; :aot :all
                        :prep-tasks ["compile" ["cljsbuild" "once" "uberjar"]]
                        :omit-source true}
              :dev {:dependencies [[cider/piggieback "0.3.10"]

@@ -1,5 +1,5 @@
 (ns org.candelbio.alzabo.llm
-  (:require [clj-http.client :as client]
+  (:require [hato.client :as client]
             [clojure.data.json :as json]
             [environ.core :as env]
             [clojure.string :as str]
