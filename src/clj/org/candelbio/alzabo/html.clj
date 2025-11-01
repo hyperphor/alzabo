@@ -95,13 +95,13 @@
 ;;; Schema is actually just the kinds structure
 (defn- kind->html
   [kind schema]
-  (let [{:keys [unique-id label fields doc]} (get schema kind)]
+  (let [{:keys [unique-id label fields description]} (get schema kind)]
     (html
      [:div.container
       (backlink)
       [:h1 (name kind)]
-      (when doc
-        [:div {:class "kind_doc"} doc])
+      (when description
+        [:div {:class "kind_doc"} description])
       [:table {:class "table"}
        (table-headings)
        (for [[field props] (into (sorted-map) fields)]
@@ -208,7 +208,7 @@
                 (for [kind (sort-by :id kinds)]
                   [:tr
                    [:th (kind-html (:id kind))]
-                   [:td (:doc kind)]]
+                   [:td (:description kind)]]
                   )]
                ])))
         [:h2 "Enums"]
