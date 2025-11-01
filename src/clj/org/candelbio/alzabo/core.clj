@@ -29,13 +29,17 @@
        path))
 
 (defn- schema
-  []
+  ([schema-file]
+   (let [schema (schema/read-schema schema-file)]
+     (config/set! :version (:version schema)) ;?
+     schema))
+  ([]
   (let [schema
         (if (= (config/config :source) :candel)
           (candel/read-schema)
           (schema/read-schema (realize-rel-path @config/config-path (config/config :source))))]
     (config/set! :version (:version schema))
-    schema))
+    schema)))
 
 ;;; New config-file machinery
 
@@ -51,8 +55,8 @@
   (output/write-schema schema (config/output-path "alzabo-schema.edn"))) 
 
 (defmethod do-command :documentation
-  [_ _] 
-  (let [schema (schema)]
+  [_ {:keys [schema-file]}] 
+  (let [schema (schema schema-file)]
     (when (= (config/config :source) :candel)
       ;; write out derived Alzabo schemas
       (write-alzabo schema))
@@ -110,3 +114,44 @@
   [config command & args]
   (main-guts config command)
   )
+
+
+;;; → multiool
+(defmacro tx
+  [template]
+  (let [params (map second (re-seq u/default-param-regex template))
+        param-map (into {} (map (fn [p] [(keyword p)
+                                         (symbol p)])
+                                params))]
+  `(u/expand-template ~template ~param-map)))
+
+;;; → multitoo;
+(defn wd
+  []
+  (System/getenv "PWD"))
+
+;;; Build and show schema doc
+(defn demo
+  [schema-file sname]
+  (let [output-dir (tx "resources/public/schema/{{sname}}/")
+        base (wd)
+        config {:source schema-file
+                :output-path output-dir
+                :edge-labels? true
+                }]
+    (config/set-config! config)
+    (do-command :documentation {:schema-file schema-file})
+    (ju/open-url (tx "file://{{base}}/{{output-dir}}index.html"))))
+
+;;; Generaste a schema from a domain description (and display it)
+(defn full-demo
+  [domain sname]
+  (let [schema (org.candelbio.alzabo.schema-gen-llm/sgen domain)
+        schema-file (tx "resources/generated/{{sname}}.edn")]
+    (output/write-schema schema schema-file)
+    (demo schema-file sname))) 
+
+
+(comment 
+  (demo "resources/generated/rockets.edn"
+ "rrrockets"))

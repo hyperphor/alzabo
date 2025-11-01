@@ -29,13 +29,10 @@
 (defn set-config!
   [config]                              ;filename or map
   (let [config (if (string? config)
-                 (do
-                   (reset! config-path config)
-                   (merge default-config ; shouldn't Aero be able to do this? 
-                          (aero/read-config config) 
-                         ))
-                 config)]
-    (reset! the-config config)))
+                 (aero/read-config config)
+                 config)
+        defaulted (merge default-config config)] ; shouldn't Aero be able to do th
+    (reset! the-config defaulted)))
 
 (defn set!
   [att value]
