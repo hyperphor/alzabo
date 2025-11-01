@@ -3,7 +3,7 @@
             [clojure.data.json :as json]
             [environ.core :as env]
             [clojure.string :as str]
-            [org.candelbio.multitool.core :as u]
+            [hyperphor.multitool.core :as u]
             ))
 
 ;;; TODO investigate Bosquet https://github.com/zmedelis/bosquet
@@ -80,6 +80,13 @@
         (if xtract
           [(read-json-safe (second xtract)) s]
           nil)))))
+
+(defn extract-clojure
+  [s]
+  (let [[type code text] (extract-code s)]
+    (if (= type :clojure)               ;or :edn
+      [(read-string code) text]         ;TODO safety
+      )))  
 
 
 (defn json-query

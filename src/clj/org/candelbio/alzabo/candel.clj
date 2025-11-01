@@ -4,7 +4,7 @@
             [clojure.java.shell :as shell]
             [org.candelbio.alzabo.config :as config]
             [org.candelbio.alzabo.schema :as schema]
-            [org.candelbio.multitool.core :as u]))
+            [hyperphor.multitool.core :as u]))
 
 ;;; Converts CANDEL [meta]schema into an Alzabo schema
 

@@ -1,5 +1,5 @@
 (ns org.candelbio.alzabo.schema-gen
-  (:require [org.candelbio.multitool.core :as u]
+  (:require [hyperphor.multitool.core :as u]
             [clojure.string :as str]
             [camel-snake-kebab.core :as csk]))
 

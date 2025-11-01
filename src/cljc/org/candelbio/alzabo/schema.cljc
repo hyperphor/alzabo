@@ -1,6 +1,6 @@
 (ns org.candelbio.alzabo.schema
   (:require [clojure.spec.alpha :as s]
-            [org.candelbio.multitool.core :as u]
+            [hyperphor.multitool.core :as u]
             [camel-snake-kebab.core :as csk]
             [clojure.string :as str]
             [clojure.set :as set]

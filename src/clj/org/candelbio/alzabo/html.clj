@@ -1,7 +1,7 @@
 (ns org.candelbio.alzabo.html
   (:require [org.candelbio.alzabo.schema :as schema]
             [org.candelbio.alzabo.config :as config]
-            [org.candelbio.multitool.core :as u]
+            [hyperphor.multitool.core :as u]
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [me.raynes.fs :as fs]

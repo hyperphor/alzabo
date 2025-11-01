@@ -4,7 +4,7 @@
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
   :dependencies [
-                 [org.candelbio/multitool "0.1.12"]
+                 [com.hyperphor/multitool "0.2.0"]
                  [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
                  [aero "1.1.6"]

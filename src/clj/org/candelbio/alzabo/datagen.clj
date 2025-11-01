@@ -1,7 +1,7 @@
 (ns org.candelbio.alzabo.datagen
   "Generate example data for Alzabo schemas"
   (:require [org.candelbio.alzabo.schema :as schema]
-            [org.candelbio.multitool.core :as u]
+            [hyperphor.multitool.core :as u]
             [clojure.string :as str]
             [clojure.data.json :as json]
             [org.candelbio.alzabo.llm :as llm])
@@ -75,8 +75,9 @@
   context is a related object (eg a Band for generating Songs)
   kind-modifier is text to add to kind/description (eg \"imaginary crazy\"
   "
-  [kind schema & {:keys [count context kind-modifier] :as params :or {count 10 kind-modifier ""}}]
-  (let [sdef (schema/kind-def schema kind)]
+  [kind schema & {:keys [count context kind-modifier] :as params}]
+  (let [params (merge  {:count 10 :kind-modifier ""} params)
+        sdef (schema/kind-def schema kind)]
     (->> (u/expand-template
                      "Please give me a list of {{count}} {{kind-modifier}} {{id}} {{description}} {{context-string}} as a list of maps in json format. For each, include the following fields: {{field-list}}. Return a json-formatted list of entities, with no extraneous text"
                      (-> sdef

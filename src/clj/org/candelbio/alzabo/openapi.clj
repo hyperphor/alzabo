@@ -1,7 +1,7 @@
 (ns org.candelbio.alzabo.openapi
   (:require [clj-yaml.core :as yaml]
             [clojure.string :as s]
-            [org.candelbio.multitool.cljcore :as ju]
+            [hyperphor.multitool.cljcore :as ju]
             ))
 
 ;;; Convert openapi.yaml files to Alzabo schemas

@@ -1,5 +1,5 @@
 (ns org.candelbio.alzabo.datomic
-  (:require [org.candelbio.multitool.core :as u]
+  (:require [hyperphor.multitool.core :as u]
             [org.candelbio.alzabo.schema :as alzs]
             ))
 

@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [me.raynes.fs :as fs]
             [clojure.string :as str]
-            [org.candelbio.multitool.core :as u])
+            [hyperphor.multitool.core :as u])
   )
 
 ;;; See resources/default-config.edn

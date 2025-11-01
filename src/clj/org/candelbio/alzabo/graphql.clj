@@ -1,7 +1,7 @@
 (ns org.candelbio.alzabo.graphql
   (:require
    [com.walmartlabs.lacinia.parser.schema :as ls]
-   [org.candelbio.multitool.core :as u]
+   [hyperphor.multitool.core :as u]
    [clojure.string :as str]
    [org.candelbio.alzabo.schema :as schema]
    )

@@ -6,7 +6,8 @@
             [org.candelbio.alzabo.output :as output]
             [org.candelbio.alzabo.datomic :as datomic]
             [org.candelbio.alzabo.datagen :as datagen]
-            [org.candelbio.multitool.core :as u]
+            [hyperphor.multitool.core :as u]
+            [hyperphor.multitool.cljcore :as ju]
             [me.raynes.fs :as fs]
             [clojure.data.json :as json]
             )

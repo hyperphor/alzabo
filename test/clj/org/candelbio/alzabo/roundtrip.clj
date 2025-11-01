@@ -5,7 +5,7 @@
             [org.candelbio.alzabo.candel :as candel]
             [org.candelbio.alzabo.config :as config]
             [org.candelbio.alzabo.datomic :as datomic]
-            [org.candelbio.multitool.core :as u]))
+            [hyperphor.multitool.core :as u]))
 
 ;;; TODO finish?
 ;;; Experiments in roundtripping. 

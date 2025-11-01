@@ -1,6 +1,6 @@
 (ns org.candelbio.alzabo.json
-  (:require [org.candelbio.multitool.core :as u]
-            [org.candelbio.multitool.cljcore :as ju]
+  (:require [hyperphor.multitool.core :as u]
+            [hyperphor.multitool.cljcore :as ju]
             [org.candelbio.alzabo.config :as config]
             [clojure.data.json :as json]
             [clojure.walk :as w]))
