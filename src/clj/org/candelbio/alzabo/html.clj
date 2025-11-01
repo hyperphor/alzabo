@@ -62,7 +62,7 @@
   (if boolean "yes" ""))
 
 ;;; TODO someday these might want to be customizable in config
-(def kind-metadata-colums
+(def kind-metadata-columns
   [{:display (fn [fieldprops] [:span {:style (style-arg {:white-space "nowrap"})} (:id fieldprops)])
     :heading "attribute"}
    {:display field-spec-html
@@ -76,21 +76,44 @@
    {:display (fn [fieldprops] (linkify (:doc fieldprops)))
     :heading "doc"}])
 
+(def kind-inverse-columns
+  [{:display field-spec-html
+    :heading "from"}
+   {:display (fn [fieldprops] [:span {:style (style-arg {:white-space "nowrap"})} (:id fieldprops)])
+    :heading "attribute"}
+   {:display :cardinality
+    :heading "cardinality"}
+   {:display (comp boold :required?)
+    :heading "required?"}
+   {:display (fn [fieldprops] (linkify (:doc fieldprops)))
+    :heading "doc"}])
+
 (defn- field->html
-  [field props]
+  [field props columns]
   (html
    [:tr
-    (for [col kind-metadata-colums]
+    (for [col columns]
       [:td ((:display col) (assoc props :id field))])]))
 
 (defn- table-headings
-  []
-  [:tr (for [col kind-metadata-colums]
+  [columns]
+  [:tr (for [col columns]
          [:th (:heading col)])])
 
 (defn- backlink
   []
   [:a {:href "index.html"} "← schema"])
+
+;;; Belongs in schema.cljc TODO
+(u/defn-memoized inverse-fields
+  [schema]
+  (reduce-kv (fn [acc kind kdf]
+               (reduce-kv (fn [acc field fdf]
+                            (assoc-in acc [(:type fdf) field] #_kind (assoc fdf :type kind)))
+                          acc
+                          (:fields kdf)))
+             {}
+             schema))
 
 ;;; Schema is actually just the kinds structure
 (defn- kind->html
@@ -103,9 +126,16 @@
       (when description
         [:div {:class "kind_doc"} description])
       [:table {:class "table"}
-       (table-headings)
+       (table-headings kind-metadata-columns)
        (for [[field props] (into (sorted-map) fields)]
-         (field->html field props))]
+         (field->html field props kind-metadata-columns))]
+
+      [:h3 "Inverse Relations"]
+      [:table {:class "table"}
+       (table-headings kind-inverse-columns)
+       (for [[field props] (into (sorted-map) (get (inverse-fields schema) kind))]
+         (field->html field props kind-inverse-columns))]
+
       (when unique-id
         [:div
          [:b "Unique ID"] ": " (name unique-id)])
@@ -230,7 +260,7 @@
      )))
 
 (defn- kind-relations
-  "This generates the list of edges in the graph. Given a kind, returns a list of [relation kind cardinality] pairs. Expands tuples"
+  "This generates the list of edges in the graph. Given a kind, returns a list of [relation target cardinality] pairs. Expands tuples"
   [kind {:keys [kinds enums]}]
   (filter (fn [[_ type _]]
             (get kinds type))
