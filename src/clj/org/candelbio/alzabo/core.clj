@@ -6,6 +6,7 @@
             [org.candelbio.alzabo.output :as output]
             [org.candelbio.alzabo.datomic :as datomic]
             [org.candelbio.alzabo.datagen :as datagen]
+            [org.candelbio.alzabo.schema-gen-llm :as sgl]
             [hyperphor.multitool.core :as u]
             [hyperphor.multitool.cljcore :as ju]
             [me.raynes.fs :as fs]
@@ -115,39 +116,24 @@
   (main-guts config command)
   )
 
-
-;;; → multiool
-(defmacro tx
-  [template]
-  (let [params (map second (re-seq u/default-param-regex template))
-        param-map (into {} (map (fn [p] [(keyword p)
-                                         (symbol p)])
-                                params))]
-  `(u/expand-template ~template ~param-map)))
-
-;;; → multitoo;
-(defn wd
-  []
-  (System/getenv "PWD"))
-
 ;;; Build and show schema doc
 (defn demo
   [schema-file sname]
-  (let [output-dir (tx "resources/public/schema/{{sname}}/")
-        base (wd)
+  (let [output-dir (u/tx "resources/public/schema/{{sname}}/")
+        base (ju/wd)
         config {:source schema-file
                 :output-path output-dir
                 :edge-labels? true
                 }]
     (config/set-config! config)
     (do-command :documentation {:schema-file schema-file})
-    (ju/open-url (tx "file://{{base}}/{{output-dir}}index.html"))))
+    (ju/open-url (u/tx "file://{{base}}/{{output-dir}}index.html"))))
 
 ;;; Generaste a schema from a domain description (and display it)
 (defn full-demo
   [domain sname]
-  (let [schema (org.candelbio.alzabo.schema-gen-llm/sgen domain)
-        schema-file (tx "resources/generated/{{sname}}.edn")]
+  (let [schema (sgl/sgen domain)
+        schema-file (u/tx "resources/generated/{{sname}}.edn")]
     (output/write-schema schema schema-file)
     (demo schema-file sname))) 
 
@@ -155,3 +141,10 @@
 (comment 
   (demo "resources/generated/rockets.edn"
  "rrrockets"))
+
+
+(defn demo-entities
+  [schema-file kind extra]
+  (let [schema (schema/read-schema schema-file)]
+    (org.candelbio.alzabo.datagen/generate-entities
+     kind schema :kind-modifier extra)))

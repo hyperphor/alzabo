@@ -73,7 +73,7 @@
 (defn generate-entities
   "Ask LLM to generate entities based on schema.
   context is a related object (eg a Band for generating Songs)
-  kind-modifier is text to add to kind/description (eg \"imaginary crazy\"
+  kind-modifier is text to add to kind/description (eg \"fictional\") 
   "
   [kind schema & {:keys [count context kind-modifier] :as params}]
   (let [params (merge  {:count 10 :kind-modifier ""} params)

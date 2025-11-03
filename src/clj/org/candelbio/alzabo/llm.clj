@@ -8,7 +8,10 @@
 
 ;;; TODO investigate Bosquet https://github.com/zmedelis/bosquet
 
-(def system-prompt "You are a music aficionado, critic, and nerdy ontologist") ;TODO JAZZ
+(def system-prompt
+  "You are a knowledge representation expert who knows how to create clean and elegant ontologies and schemas for various domains")
+
+#_ (def system-prompt "You are a music aficionado, critic, and nerdy ontologist") ;TODO JAZZ
 
 (defn api-key
   []
