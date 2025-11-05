@@ -1,10 +1,10 @@
 # alzabo
 
-A simple schema management and documentation tool for graph-based systems. [Live example](https://candelbio.github.io/alzabo/).
+A simple schema management and documentation tool for graph-based systems. [Live example](https://hyperphor.github.io/alzabo/). TODO get this working
 
 ![Alzabo](resources/public/screenshot.png)
 
-Alzabo does a number of different tasks centered around a simple schema format for graph databases.
+Alzabo defines a a simple schema format for graph databases or other storage formats. It's semantically close to RDF.
 
 Core:
 - Defines an .edn schema format, with semantics similar to RDF.
@@ -14,6 +14,7 @@ Core:
 Import:
 - Tool to convert the [CANDEL schema](https://github.com/candelbio/pret/tree/master/resources/schema) into Alzabo schema
 - Tool to convert OpenAPI YAML format into Alzabo schemas
+- Tool to convert GraphQL format into Alzabo schema
 
 Export:
 - Tool to generate Datomic schemas from Alzabo format
@@ -30,8 +31,7 @@ Schemas are represented as EDN maps. See [an example](test/resources/schema/raws
 
 A kind definition is a map with attributes:
 `:fields`: a map of field names (keywords) to field definitions
-`:doc` a string
-`:reference?` a boolean indicating that this is a reference class (TODO rather too CANDEL specific, maybe generalize)
+`:description` a string
 
 A field definition is a map with attributes:
 `:type` can be:
@@ -41,7 +41,7 @@ A field definition is a map with attributes:
    Default is `:string`
 `:doc` a string
 `:cardinality` Either `:one` (default) or `:many`
-`:unique` Either `:identity` or `:value`, see [Datomic doc](https://docs.datomic.com/on-prem/schema.html#operational-schema-attributes) for details.
+`:unique?` Either `:identity` or `:value`, see [Datomic doc](https://docs.datomic.com/on-prem/schema.html#operational-schema-attributes) for details.
 `:unique-id` (deprecated) `true` means the same as `:unique :identity`
  `:attribute` the datomic or sparql attribute corresponding to the field 
 
@@ -60,51 +60,40 @@ To generate documentation, you need graphviz installed. On the Mac, you can do t
 
     lein with-profile library, prod install
 
-TODO send to clojars
+### Publish on Clojars
 
+From a real terminal (not Emacs)
 
-### Generate and view CANDEL schema
-
-Prerequisites:
-- [leiningen](https://leiningen.org/)
-- [Pret](https://github.com/CANDELbio/pret) installed as a sibling to Alzabo (TODO update to point to opensource version)
-
-    $ lein launch
-
-Will compile the CANDEL schema to static files, compile the clojurescript code for autocomplete, and open the schema web page. 
-
-Or, to use a locally (but possibly out of date) version of the schema:
-
-    lein run test/resources/test-config.edn datomic
-    lein run test/resources/test-config.edn documentation
-    lein run test/resources/test-config.edn server 
+    lein deploy clojars
+	
+You will need to supply credentials (user name and authentication token).
 
 ## Commands
 
 You can run these commands with `lein run <config> <cmd>`. 
 
-	$ lein run documentation 
+	$ lein run <config> documentation 
 	
 Generates documentation from the given Alzabo schema file. 
 
-	$ lein run datomic 
+	$ lein run <config? datomic 
 	
 Generates a Datomic schema from the given Alzabo schema file. 
 
-	$ lein run server
+	$ lein run <config> server
 
 Opens the generated documentation in browser..
 
 ## Use as a library
 
-Add dependency `[org.candelbio/alzabo "1.0.0"]` (or whatever the lastest version is)
+Add dependency `[hyperphor/alzabo <version>]
 
 ### Example
 
     (ns ...
-	  (:require [org.candelbio.alzabo.schema :as schema]
-                [org.candelbio.alzabo.datomic :as datomic]
-				[org.candelbio.alzabo.html :as html]))
+	  (:require [hyperphor.alzabo.schema :as schema]
+                [hyperphor.alzabo.datomic :as datomic]
+				[hyperphor.alzabo.html :as html]))
 
 	;; read in a schema file
 	(let [schema (schema/read-schema <schema.edn>)]
@@ -116,3 +105,8 @@ Add dependency `[org.candelbio/alzabo "1.0.0"]` (or whatever the lastest version
       (html/schema->html schema "public/schema" {}))
 
 
+# Schema Generation
+
+TODO refine
+
+    (hyperphor.alzabo.core/full-demo "scientists" "scientists")

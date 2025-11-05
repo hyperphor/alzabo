@@ -1,16 +1,30 @@
-(defproject org.candelbio/alzabo "1.2.0"
+(defproject com.hyperphor/alzabo "1.3.0"
   :description "Semantic schema format and tools, for Datomic and other uses."
-  :url "http://github.com/candelbio/alzabo"
+  :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
-  :dependencies [;; Clojure 
-                 [org.clojure/clojure "1.11.3"]
-                 [hiccup "1.0.5"]
-                 [clj-commons/clj-yaml "0.7.0"]
+  :dependencies [
+                 [com.hyperphor/multitool "0.2.1"]
+                 [environ "1.2.0"]
+                 [camel-snake-kebab "0.4.3"]
+                 [aero "1.1.6"]
+
+                 ;; Clojure
+                 [org.clojure/clojure "1.12.3"]
+                 [hiccup "2.0.0"]
                  [me.raynes/fs "1.4.6"]
+
+                 [hato "1.0.0"]         ;replaces clj-http
+                 [cheshire "6.1.0"]    ;necessary for json parse
+                 [org.clojure/data.json "2.5.1"]
+                 [clj-commons/clj-yaml "1.0.29"]
+
+                 ;; For GraphQL but not used at present
+                 #_ [com.walmartlabs/lacinia "1.2.2"]
+
+                 ;; TODO separate out UI into separate project, this should be a smallish library
                  ;; Clojurescript
-                 [org.clojure/clojurescript "1.10.520"]
-                 [org.candelbio/multitool "0.1.5"]
+                 [org.clojure/clojurescript "1.12.42"]
                  [reagent  "0.8.1"]
                  [re-frame "0.10.6"]
                  ]
@@ -25,11 +39,11 @@
                       ["cljsbuild" "once"]
                       ["run" "resources/candel-config.edn" "server" ]
                       ]}
-  :main org.candelbio.alzabo.core
+  :main hyperphor.alzabo.core
   :target-path "target/%s"
   :profiles {:library {:prep-tasks ["compile" ["cljsbuild" "once"]]
                        }
-             :uberjar {:aot :all
+             :uberjar {;; :aot :all
                        :prep-tasks ["compile" ["cljsbuild" "once" "uberjar"]]
                        :omit-source true}
              :dev {:dependencies [[cider/piggieback "0.3.10"]

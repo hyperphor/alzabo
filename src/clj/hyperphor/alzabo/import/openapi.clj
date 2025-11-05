@@ -1,7 +1,7 @@
-(ns org.candelbio.alzabo.openapi
+(ns hyperphor.alzabo.import.openapi
   (:require [clj-yaml.core :as yaml]
             [clojure.string :as s]
-            [org.candelbio.multitool.cljcore :as ju]
+            [hyperphor.multitool.cljcore :as ju]
             ))
 
 ;;; Convert openapi.yaml files to Alzabo schemas
@@ -66,8 +66,7 @@
        alzabo-schema
        (ju/schppit alzabo)))
 
-    
 #_
-(convert "/Users/mt/repos/api-server/common/api/openapi.yaml"
-         "/opt/mtravers/os/alzabo/resources/ganymede-openapi.edn")
+(convert "resources/petstore.yaml"
+         "resources/petstore.edn")
       

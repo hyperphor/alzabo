@@ -12,7 +12,7 @@ div, h1, input {
 
 .explanation {
   width: 260px;
-  position: absolute; 		/* makes it float in upper-left */
+  float: right;
   padding: 10px;
   margin: 10px;
   border: 1px solid gray;

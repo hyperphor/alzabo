@@ -1,6 +1,6 @@
-(ns org.candelbio.alzabo.datomic
-  (:require [org.candelbio.multitool.core :as u]
-            [org.candelbio.alzabo.schema :as alzs]
+(ns hyperphor.alzabo.export.datomic
+  (:require [hyperphor.multitool.core :as u]
+            [hyperphor.alzabo.schema :as alzs]
             ))
 
 ;;; Write out a Datomic schema from Alzabo schema
@@ -17,6 +17,12 @@
         :else
         :db.type/ref))
 
+(defn safe-name
+  [v]
+  (if (number? (u/ignore-errors (read-string (name v))))
+    (str "v-" (name v))
+    (name v)))
+
 (defn datomic-schema
   "Generate a Datomic schema transaction from an Alzabo schema"
   [{:keys [kinds enums] :as schema} & [{:keys [enum-doc?] :or {enum-doc? true}}]]
@@ -24,13 +30,12 @@
   (u/clean-walk
    (concat
     (mapcat (fn [[class-name class-def]]
-              (map (fn [[field-name {:keys [cardinality type unique unique-id index component doc] :as field-def}]]
+              (map (fn [[field-name {:keys [cardinality type unique? unique-id index component doc] :as field-def}]]
                      (let [datomic-type (az-type->datomic-type type)]
                        {:db/ident (keyword (name class-name) (name field-name))
                         :db/doc doc
                         :db/cardinality (if (= :many cardinality) :db.cardinality/many :db.cardinality/one)
-                        :db/unique (or (if unique (keyword "db.unique" (name unique)))
-                                       (if unique-id :db.unique/identity)) ;this is just for backward compatibility, :unique-id is deprecated
+                        :db/unique (when unique? :db.unique/identity) ;TODO support :db.unique/value see https://docs.datomic.com/schema/identity.html
                         :db/index index
                         :db/valueType datomic-type
                         ;; heterogenous tuples https://docs.datomic.com/on-prem/schema.html
@@ -47,7 +52,7 @@
     (mapcat (fn [[enum-type {:keys [values doc]}]]
               (map (fn [[enum doc]]
                      (u/clean-map
-                      {:db/ident enum
+                      {:db/ident (keyword (name enum-type) (safe-name enum))
                        :db/doc (and enum-doc? doc)
                        }))
                    values))

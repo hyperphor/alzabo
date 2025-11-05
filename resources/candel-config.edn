@@ -2,7 +2,7 @@
 
 {:source :candel
  :pret-path "pret"                      ;Assumes pret is cloned in a subdir, see deploy.yaml
- :output-path "resources/public/schema/{version}/" 
+ :output-path "resources/public/schema/{{version}}/" 
  :edge-labels? false
  :reference? true
  :main-color "lightsteelblue"

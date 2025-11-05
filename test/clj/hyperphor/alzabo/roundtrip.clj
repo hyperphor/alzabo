@@ -1,11 +1,11 @@
-(ns org.candelbio.alzabo.roundtrip
+(ns hyperphor.alzabo.roundtrip
   (:require [clojure.data :as data]
             [clojure.pprint :refer [pprint]]
-            [org.candelbio.alzabo.output :as output]
-            [org.candelbio.alzabo.candel :as candel]
-            [org.candelbio.alzabo.config :as config]
-            [org.candelbio.alzabo.datomic :as datomic]
-            [org.candelbio.multitool.core :as u]))
+            [hyperphor.alzabo.output :as output]
+            [hyperphor.alzabo.export.datomic :as datomic]
+            [hyperphor.alzabo.import.candel :as candel]
+            [hyperphor.alzabo.config :as config]
+            [hyperphor.multitool.core :as u]))
 
 ;;; TODO finish?
 ;;; Experiments in roundtripping. 
@@ -28,8 +28,8 @@
         printer (fn [name contents]
                   (prn name (count contents))
                   (pprint contents))]
-    (printer :orig-recreated (u/lset-difference candel-orig recreated))
-    (printer :recreated-orig (u/lset-difference recreated candel-orig))
+    (printer :orig-recreated (u/ldifference candel-orig recreated))
+    (printer :recreated-orig (u/ldifference recreated candel-orig))
     (output/write-schema recreated "roundtrip-datomic.edn")))
 
 ;;; TODO test that roundtrip-datomic.edn is equivalent to "/resources/schema/schema.edn"

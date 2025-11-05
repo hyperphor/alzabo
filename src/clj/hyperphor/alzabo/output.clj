@@ -1,4 +1,4 @@
-(ns org.candelbio.alzabo.output
+(ns hyperphor.alzabo.output
   (:require [clojure.pprint :as pprint]
             [clojure.java.io :as io]
             [me.raynes.fs :as fs]

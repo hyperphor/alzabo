@@ -1,10 +1,10 @@
-(ns org.candelbio.alzabo.candel
+(ns hyperphor.alzabo.import.candel
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [clojure.java.shell :as shell]
-            [org.candelbio.alzabo.config :as config]
-            [org.candelbio.alzabo.schema :as schema]
-            [org.candelbio.multitool.core :as u]))
+            [hyperphor.alzabo.config :as config]
+            [hyperphor.alzabo.schema :as schema]
+            [hyperphor.multitool.core :as u]))
 
 ;;; Converts CANDEL [meta]schema into an Alzabo schema
 
