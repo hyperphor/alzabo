@@ -1,4 +1,4 @@
-(ns hyperphor.alzabo.candel
+(ns hyperphor.alzabo.import.candel
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [clojure.java.shell :as shell]

@@ -1,4 +1,4 @@
-(ns hyperphor.alzabo.graphql
+(ns hyperphor.alzabo.import.graphql
   (:require
    [com.walmartlabs.lacinia.parser.schema :as ls]
    [hyperphor.multitool.core :as u]
@@ -8,6 +8,7 @@
   )
 
 ;;; Convert GraphQL Schema (SDL) into an Alzabo schema
+;;; TODO not wired into CLI yet
 
 ;;; Not quite a full mapping but close
 (defn type->alz

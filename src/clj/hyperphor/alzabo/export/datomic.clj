@@ -1,4 +1,4 @@
-(ns hyperphor.alzabo.datomic
+(ns hyperphor.alzabo.export.datomic
   (:require [hyperphor.multitool.core :as u]
             [hyperphor.alzabo.schema :as alzs]
             ))

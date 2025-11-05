@@ -2,9 +2,9 @@
   (:require [clojure.data :as data]
             [clojure.pprint :refer [pprint]]
             [hyperphor.alzabo.output :as output]
-            [hyperphor.alzabo.candel :as candel]
+            [hyperphor.alzabo.export.datomic :as datomic]
+            [hyperphor.alzabo.import.candel :as candel]
             [hyperphor.alzabo.config :as config]
-            [hyperphor.alzabo.datomic :as datomic]
             [hyperphor.multitool.core :as u]))
 
 ;;; TODO finish?

@@ -10,7 +10,6 @@
 ;;; See resources/default-config.edn
 
 (def the-config (atom nil))
-#_ (def config-path (atom nil))            ;TODO sometimes we pass in config, so no path
 
 (defmethod aero/reader 'split
   [_ _ [s]]

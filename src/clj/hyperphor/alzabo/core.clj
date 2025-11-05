@@ -1,10 +1,10 @@
 (ns hyperphor.alzabo.core
-  (:require [hyperphor.alzabo.candel :as candel]
+  (:require #_ [hyperphor.alzabo.candel :as candel]
             [hyperphor.alzabo.schema :as schema]
             [hyperphor.alzabo.config :as config]
             [hyperphor.alzabo.html :as html]
             [hyperphor.alzabo.output :as output]
-            [hyperphor.alzabo.datomic :as datomic]
+            [hyperphor.alzabo.export.datomic :as datomic]
             [hyperphor.alzabo.datagen :as datagen]
             [hyperphor.alzabo.schema-gen-llm :as sgl]
             [hyperphor.multitool.core :as u]

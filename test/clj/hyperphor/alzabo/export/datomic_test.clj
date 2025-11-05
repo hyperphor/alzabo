@@ -1,5 +1,5 @@
-(ns hyperphor.alzabo.datomic-test
-  (:require [hyperphor.alzabo.datomic :refer :all]
+(ns hyperphor.alzabo.export.datomic-test
+  (:require [hyperphor.alzabo.export.datomic :refer :all]
             [hyperphor.alzabo.schema :as schema]
             [clojure.test :refer :all]
             ))
