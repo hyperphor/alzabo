@@ -1,10 +1,10 @@
-(ns org.candelbio.alzabo.roundtrip
+(ns hyperphor.alzabo.roundtrip
   (:require [clojure.data :as data]
             [clojure.pprint :refer [pprint]]
-            [org.candelbio.alzabo.output :as output]
-            [org.candelbio.alzabo.candel :as candel]
-            [org.candelbio.alzabo.config :as config]
-            [org.candelbio.alzabo.datomic :as datomic]
+            [hyperphor.alzabo.output :as output]
+            [hyperphor.alzabo.candel :as candel]
+            [hyperphor.alzabo.config :as config]
+            [hyperphor.alzabo.datomic :as datomic]
             [hyperphor.multitool.core :as u]))
 
 ;;; TODO finish?

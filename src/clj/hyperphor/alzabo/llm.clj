@@ -1,4 +1,4 @@
-(ns org.candelbio.alzabo.llm
+(ns hyperphor.alzabo.llm
   (:require [hato.client :as client]
             [clojure.data.json :as json]
             [environ.core :as env]

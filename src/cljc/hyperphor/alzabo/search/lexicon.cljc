@@ -1,4 +1,4 @@
-(ns org.candelbio.alzabo.search.lexicon
+(ns hyperphor.alzabo.search.lexicon
   (:require [clojure.string :as str]
             [hyperphor.multitool.nlp :as nlp]))
   

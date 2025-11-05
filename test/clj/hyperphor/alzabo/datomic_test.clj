@@ -1,6 +1,6 @@
-(ns org.candelbio.alzabo.datomic-test
-  (:require [org.candelbio.alzabo.datomic :refer :all]
-            [org.candelbio.alzabo.schema :as schema]
+(ns hyperphor.alzabo.datomic-test
+  (:require [hyperphor.alzabo.datomic :refer :all]
+            [hyperphor.alzabo.schema :as schema]
             [clojure.test :refer :all]
             ))
 

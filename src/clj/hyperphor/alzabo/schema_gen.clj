@@ -1,4 +1,4 @@
-(ns org.candelbio.alzabo.schema-gen
+(ns hyperphor.alzabo.schema-gen
   (:require [hyperphor.multitool.core :as u]
             [clojure.string :as str]
             [camel-snake-kebab.core :as csk]))

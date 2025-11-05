@@ -1,6 +1,6 @@
-(ns org.candelbio.alzabo.datagen.jazz
+(ns hyperphor.alzabo.datagen.jazz
   "Jazz-specific data generators for Alzabo schemas"
-  (:require [org.candelbio.alzabo.datagen :as datagen]
+  (:require [hyperphor.alzabo.datagen :as datagen]
             [clojure.string :as str]))
 
 ;;; Jazz-specific data sets

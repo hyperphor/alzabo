@@ -1,6 +1,6 @@
-(ns org.candelbio.alzabo.datomic
+(ns hyperphor.alzabo.datomic
   (:require [hyperphor.multitool.core :as u]
-            [org.candelbio.alzabo.schema :as alzs]
+            [hyperphor.alzabo.schema :as alzs]
             ))
 
 ;;; Write out a Datomic schema from Alzabo schema

@@ -1,4 +1,4 @@
-(ns org.candelbio.alzabo.config
+(ns hyperphor.alzabo.config
   (:require [clojure.edn :as edn]
             [aero.core :as aero]
             [clojure.java.io :as io]

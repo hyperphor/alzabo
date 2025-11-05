@@ -1,5 +1,5 @@
-(ns org.candelbio.alzabo.core-test
-  (:require [org.candelbio.alzabo.core :as sut]
+(ns hyperphor.alzabo.core-test
+  (:require [hyperphor.alzabo.core :as sut]
             [me.raynes.fs :as fs]
             [clojure.test :refer :all]))
 

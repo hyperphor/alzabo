@@ -1,6 +1,6 @@
-(ns org.candelbio.alzabo.html
-  (:require [org.candelbio.alzabo.schema :as schema]
-            [org.candelbio.alzabo.config :as config]
+(ns hyperphor.alzabo.html
+  (:require [hyperphor.alzabo.schema :as schema]
+            [hyperphor.alzabo.config :as config]
             [hyperphor.multitool.core :as u]
             [clojure.string :as s]
             [clojure.pprint :as pp]
@@ -251,11 +251,11 @@
             ]
             )]]]
       ;; Pass the schema to clojurescript widget inside an invisible div
-      ;; See org.candelbio.alzabo.search.core/get-schema
+      ;; See hyperphor.alzabo.search.core/get-schema
       [:div#aschema {:style (style-arg {:display "none"})}
        (str schema)]
       [:script {:src "client.js"}]
-      [:script "window.onload = function() { org.candelbio.alzabo.search.core.run(); }"]
+      [:script "window.onload = function() { hyperphor.alzabo.search.core.run(); }"]
       ]
      )))
 

@@ -1,12 +1,12 @@
-(ns org.candelbio.alzabo.core
-  (:require [org.candelbio.alzabo.candel :as candel]
-            [org.candelbio.alzabo.schema :as schema]
-            [org.candelbio.alzabo.config :as config]
-            [org.candelbio.alzabo.html :as html]
-            [org.candelbio.alzabo.output :as output]
-            [org.candelbio.alzabo.datomic :as datomic]
-            [org.candelbio.alzabo.datagen :as datagen]
-            [org.candelbio.alzabo.schema-gen-llm :as sgl]
+(ns hyperphor.alzabo.core
+  (:require [hyperphor.alzabo.candel :as candel]
+            [hyperphor.alzabo.schema :as schema]
+            [hyperphor.alzabo.config :as config]
+            [hyperphor.alzabo.html :as html]
+            [hyperphor.alzabo.output :as output]
+            [hyperphor.alzabo.datomic :as datomic]
+            [hyperphor.alzabo.datagen :as datagen]
+            [hyperphor.alzabo.schema-gen-llm :as sgl]
             [hyperphor.multitool.core :as u]
             [hyperphor.multitool.cljcore :as ju]
             [me.raynes.fs :as fs]
@@ -146,5 +146,5 @@
 (defn demo-entities
   [schema-file kind extra]
   (let [schema (schema/read-schema schema-file)]
-    (org.candelbio.alzabo.datagen/generate-entities
+    (hyperphor.alzabo.datagen/generate-entities
      kind schema :kind-modifier extra)))

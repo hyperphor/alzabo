@@ -1,9 +1,9 @@
-(ns org.candelbio.alzabo.html-test
+(ns hyperphor.alzabo.html-test
   (:require [clojure.test :refer :all]
-            [org.candelbio.alzabo.schema :as schema]
-            [org.candelbio.alzabo.config :as config]
+            [hyperphor.alzabo.schema :as schema]
+            [hyperphor.alzabo.config :as config]
             [me.raynes.fs :as fs]
-            [org.candelbio.alzabo.html :refer :all]))
+            [hyperphor.alzabo.html :refer :all]))
 
 ;;; TODO this machinery should be for all tests
 (def test-config "test/resources/test-config.edn")

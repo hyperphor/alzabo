@@ -1,4 +1,4 @@
-(ns org.candelbio.alzabo.openapi
+(ns hyperphor.alzabo.openapi
   (:require [clj-yaml.core :as yaml]
             [clojure.string :as s]
             [hyperphor.multitool.cljcore :as ju]

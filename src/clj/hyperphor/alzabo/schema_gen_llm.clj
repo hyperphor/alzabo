@@ -1,7 +1,7 @@
-(ns org.candelbio.alzabo.schema-gen-llm
+(ns hyperphor.alzabo.schema-gen-llm
   (:require [hyperphor.multitool.core :as u]
             [clojure.string :as str]
-            [org.candelbio.alzabo.llm :as llm]))
+            [hyperphor.alzabo.llm :as llm]))
 
 
 (def system-prompt

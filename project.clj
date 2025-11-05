@@ -1,6 +1,6 @@
-(defproject org.candelbio/alzabo "1.2.2"
+(defproject com.hyperphor/alzabo "1.3.0"
   :description "Semantic schema format and tools, for Datomic and other uses."
-  :url "http://github.com/candelbio/alzabo"
+  :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
   :dependencies [
@@ -10,7 +10,7 @@
                  [aero "1.1.6"]
 
                  ;; Clojure
-                 [org.clojure/clojure "1.12.1"]
+                 [org.clojure/clojure "1.12.3"]
                  [hiccup "2.0.0"]
                  [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
@@ -37,7 +37,7 @@
                       ["cljsbuild" "once"]
                       ["run" "resources/candel-config.edn" "server" ]
                       ]}
-  :main org.candelbio.alzabo.core
+  :main hyperphor.alzabo.core
   :target-path "target/%s"
   :profiles {:library {:prep-tasks ["compile" ["cljsbuild" "once"]]
                        }

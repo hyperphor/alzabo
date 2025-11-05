@@ -1,9 +1,9 @@
-(ns org.candelbio.alzabo.graphql
+(ns hyperphor.alzabo.graphql
   (:require
    [com.walmartlabs.lacinia.parser.schema :as ls]
    [hyperphor.multitool.core :as u]
    [clojure.string :as str]
-   [org.candelbio.alzabo.schema :as schema]
+   [hyperphor.alzabo.schema :as schema]
    )
   )
 
