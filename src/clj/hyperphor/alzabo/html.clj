@@ -104,17 +104,6 @@
   []
   [:a {:href "index.html"} "← schema"])
 
-;;; Belongs in schema.cljc TODO
-(u/defn-memoized inverse-fields
-  [schema]
-  (reduce-kv (fn [acc kind kdf]
-               (reduce-kv (fn [acc field fdf]
-                            (assoc-in acc [(:type fdf) field] #_kind (assoc fdf :type kind)))
-                          acc
-                          (:fields kdf)))
-             {}
-             schema))
-
 ;;; Schema is actually just the kinds structure
 (defn- kind->html
   [kind schema]
@@ -133,7 +122,7 @@
       [:h3 "Inverse Relations"]
       [:table {:class "table"}
        (table-headings kind-inverse-columns)
-       (for [[field props] (into (sorted-map) (get (inverse-fields schema) kind))]
+       (for [[field props] (into (sorted-map) (get (schema/inverse-fields schema) kind))]
          (field->html field props kind-inverse-columns))]
 
       (when unique-id

@@ -1,6 +1,6 @@
 (ns hyperphor.alzabo.import.graphql
   (:require
-   [com.walmartlabs.lacinia.parser.schema :as ls]
+   #_ [com.walmartlabs.lacinia.parser.schema :as ls]
    [hyperphor.multitool.core :as u]
    [clojure.string :as str]
    [hyperphor.alzabo.schema :as schema]

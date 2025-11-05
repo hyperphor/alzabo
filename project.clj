@@ -12,13 +12,15 @@
                  ;; Clojure
                  [org.clojure/clojure "1.12.3"]
                  [hiccup "2.0.0"]
-                 [clj-commons/clj-yaml "0.7.0"]
                  [me.raynes/fs "1.4.6"]
 
                  [hato "1.0.0"]         ;replaces clj-http
-                 [cheshire "5.13.0"]    ;necessary for json parse
+                 [cheshire "6.1.0"]    ;necessary for json parse
+                 [org.clojure/data.json "2.5.1"]
+                 [clj-commons/clj-yaml "1.0.29"]
 
-                 [com.walmartlabs/lacinia "1.2.2"]
+                 ;; For GraphQL but not used at present
+                 #_ [com.walmartlabs/lacinia "1.2.2"]
 
                  ;; TODO separate out UI into separate project, this should be a smallish library
                  ;; Clojurescript

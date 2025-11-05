@@ -196,3 +196,14 @@
   "Check if a type is an enum"
   [type-name schema]
   (contains? (set (enums schema)) type-name))
+
+(u/defn-memoized inverse-fields
+  [schema]
+  (reduce-kv (fn [acc kind kdf]
+               (reduce-kv (fn [acc field fdf]
+                            (assoc-in acc [(:type fdf) field] #_kind (assoc fdf :type kind)))
+                          acc
+                          (:fields kdf)))
+             {}
+             schema))
+

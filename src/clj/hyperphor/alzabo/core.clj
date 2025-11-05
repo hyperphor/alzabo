@@ -22,7 +22,7 @@
   (.browse (java.awt.Desktop/getDesktop)
            (.toURI (java.io.File. file))))
 
-;;; TODO :candel special casing removed
+;;; :candel special casing removed
 (defn- schema
   [schema-file]
   (let [schema-file (or schema-file  (config/realize-path (config/config :source)))

@@ -22,8 +22,6 @@ Export:
 
 ## Schema format
 
-TODO this is out of date or will be. 
-
 Schemas are represented as EDN maps. See [an example](test/resources/schema/rawsugar.edn) or the [schema spec](src/cljc/org/parkerici/alzabo/schema.cljc).
 
 `:title` a string
