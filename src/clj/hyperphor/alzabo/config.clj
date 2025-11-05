@@ -10,7 +10,7 @@
 ;;; See resources/default-config.edn
 
 (def the-config (atom nil))
-(def config-path (atom nil))
+#_ (def config-path (atom nil))            ;TODO sometimes we pass in config, so no path
 
 (defmethod aero/reader 'split
   [_ _ [s]]
@@ -26,10 +26,15 @@
    :categories {:default {:color "#a9cce3"}}
    })
 
+(defn read-config
+  [path]
+  (assoc (aero/read-config path)
+         :root path))
+
 (defn set-config!
   [config]                              ;filename or map
   (let [config (if (string? config)
-                 (aero/read-config config)
+                 (read-config config)
                  config)
         defaulted (merge default-config config)] ; shouldn't Aero be able to do th
     (reset! the-config defaulted)))
@@ -51,15 +56,17 @@
     (str (u/expand-template (config :output-path) (config))
          filename))))
 
-;;; This bit of hackery seems to come and go
 ;; TODO → multitool (with some cleanup)
-(defn realize-rel-path
+(defn- realize-rel-path
   [base path]
   (str (.getParentFile (fs/file base))
        "/"
        path))
 
+;;; Path can be absolute (starts with /) or relative to config root
 (defn realize-path
   [path]
-  (realize-rel-path @config-path path))
+  (cond (= \/ (first path)) path
+        (nil? (config :root)) (throw (ex-info "No config root" {}))
+        :esle (realize-rel-path (config :root) path)))
 

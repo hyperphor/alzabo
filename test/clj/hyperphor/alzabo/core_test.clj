@@ -17,6 +17,7 @@
   (testing "from file"
     (sut/main-guts rawsugar-config "datomic")
     (is (fs/exists? "target/rawsugar/datomic-schema.edn")))
+  #_
   (testing "from CANDEL"
     (sut/main-guts candel-config "datomic")
     (is (fs/exists? "target/candel/1.3.1/alzabo-schema.edn"))
@@ -28,6 +29,7 @@
     (is (fs/exists? "target/rawsugar/schema.edn"))
     (is (fs/exists? "target/rawsugar/schema.dot.svg"))
     (is (fs/exists? "target/rawsugar/sheet.html")))
+  #_
   (testing "from CANDEL"
     (sut/main-guts candel-config "documentation" )
     (is (fs/exists? "target/candel/1.3.1/schema.edn"))

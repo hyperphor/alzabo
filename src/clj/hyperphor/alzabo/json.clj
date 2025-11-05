@@ -28,6 +28,8 @@
                             fields))))
                kinds)))))
 
+;;; Needs work
+#_
 (defn write-schema
   []
   (->> "typeorm-schema.json"

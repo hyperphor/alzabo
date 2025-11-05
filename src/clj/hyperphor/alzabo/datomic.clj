@@ -30,12 +30,12 @@
   (u/clean-walk
    (concat
     (mapcat (fn [[class-name class-def]]
-              (map (fn [[field-name {:keys [cardinality type unique unique-id index component doc] :as field-def}]]
+              (map (fn [[field-name {:keys [cardinality type unique? unique-id index component doc] :as field-def}]]
                      (let [datomic-type (az-type->datomic-type type)]
                        {:db/ident (keyword (name class-name) (name field-name))
                         :db/doc doc
                         :db/cardinality (if (= :many cardinality) :db.cardinality/many :db.cardinality/one)
-                        :db/unique (when unique :db.unique/identity) ;TODO support :db.unique/value see https://docs.datomic.com/schema/identity.html
+                        :db/unique (when unique? :db.unique/identity) ;TODO support :db.unique/value see https://docs.datomic.com/schema/identity.html
                         :db/index index
                         :db/valueType datomic-type
                         ;; heterogenous tuples https://docs.datomic.com/on-prem/schema.html

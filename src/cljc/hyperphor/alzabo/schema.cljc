@@ -52,7 +52,7 @@
            [`#(set/subset? ~required-keys (set (keys %)))]))))
 
 (s/def ::field (strict-keys :req-un []
-                            :opt-un [::type ::cardinality ::required? ::unique?
+                            :opt-un [::type ::cardinality ::required? ::unique? ::component?
                                      ::doc ;TODO ::examples, ::generator
                                      ::index ::attribute
                                      ::min ::max]))

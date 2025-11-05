@@ -22,25 +22,13 @@
   (.browse (java.awt.Desktop/getDesktop)
            (.toURI (java.io.File. file))))
 
-;;; Will be in multitool
-(defn realize-rel-path
-  [base path]
-  (str (.getParentFile (fs/file base))
-       "/"
-       path))
-
+;;; TODO :candel special casing removed
 (defn- schema
-  ([schema-file]
-   (let [schema (schema/read-schema schema-file)]
+  [schema-file]
+  (let [schema-file (or schema-file  (config/realize-path (config/config :source)))
+        schema (schema/read-schema schema-file)]
      (config/set! :version (:version schema)) ;?
      schema))
-  ([]
-  (let [schema
-        (if (= (config/config :source) :candel)
-          (candel/read-schema)
-          (schema/read-schema (realize-rel-path @config/config-path (config/config :source))))]
-    (config/set! :version (:version schema))
-    schema)))
 
 ;;; New config-file machinery
 
@@ -58,14 +46,14 @@
 (defmethod do-command :documentation
   [_ {:keys [schema-file]}] 
   (let [schema (schema schema-file)]
-    (when (= (config/config :source) :candel)
+    #_ (when (= (config/config :source) :candel)
       ;; write out derived Alzabo schemas
       (write-alzabo schema))
     (html/schema->html schema)))
 
 (defmethod do-command :datomic
   [_ _]
-  (let [schema (schema)]
+  (let [schema (schema nil)]
     (write-alzabo schema)
     (output/write-schema (datomic/datomic-schema schema)
                          (config/output-path "datomic-schema.edn"))
@@ -139,8 +127,8 @@
 
 
 (comment 
-  (demo "resources/generated/rockets.edn"
- "rrrockets"))
+  (demo "resources/generated/rockets.edn" "rockets")
+  (full-demo "scientists" "scientists"))
 
 
 (defn demo-entities
