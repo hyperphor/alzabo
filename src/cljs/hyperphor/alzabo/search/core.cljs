@@ -1,8 +1,8 @@
-(ns org.candelbio.alzabo.search.core
+(ns hyperphor.alzabo.search.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as rf]
             [clojure.reader :as reader]
-            [org.candelbio.alzabo.search.lexicon :as lex]
+            [hyperphor.alzabo.search.lexicon :as lex]
             ))
 
 ;; Get the schema from an invisible div on the page

@@ -51,8 +51,8 @@
                                   [figwheel-sidecar "0.5.16"]
                                   ]
                    :cljsbuild
-                   {:builds {:client {:figwheel     {:on-jsload "org.candelbio.alzabo.search.core/run"}
-                                      :compiler     {:main "org.candelbio.alzabo.search.core"
+                   {:builds {:client {:figwheel     {:on-jsload "hyperphor.alzabo.search.core/run"}
+                                      :compiler     {:main "hyperphor.alzabo.search.core"
                                                      :asset-path "js"
                                                      ;; for 10x debugger
                                                      :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true}
@@ -71,7 +71,7 @@
              {:dependencies [[day8.re-frame/tracing-stubs "0.5.1"]]
               :cljsbuild
               {:builds {:client {
-                                 :compiler     {:main "org.candelbio.alzabo.search.core"
+                                 :compiler     {:main "hyperphor.alzabo.search.core"
                                                 :asset-path "js"
                                                 :closure-defines {goog.DEBUG false}
                                                 :output-dir "resources/public/js"

@@ -1,4 +1,4 @@
-(ns hyperphor.alzabo.graphql-gen
+(ns hyperphor.alzabo.export.graphql-gen
   (:require [clojure.string :as str]))
 
 ;;; Claude-generated
