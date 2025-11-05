@@ -22,7 +22,7 @@ Export:
 
 ## Schema format
 
-Schemas are represented as EDN maps. See [an example](test/resources/schema/rawsugar.edn) or the [schema spec](src/cljc/org/parkerici/alzabo/schema.cljc).
+Schemas are represented as EDN maps. See [an example](test/resources/schema/rawsugar.edn) or the [schema spec](src/cljc/hyperphor/alzabo/schema.cljc).
 
 `:title` a string
 `:version` a string
@@ -110,3 +110,6 @@ Add dependency `[hyperphor/alzabo <version>]
 TODO refine
 
     (hyperphor.alzabo.core/full-demo "scientists" "scientists")
+
+# Credits
+
