@@ -30,6 +30,7 @@
   (u/clean-walk
    (concat
     (mapcat (fn [[class-name class-def]]
+              ;; Use all-fields to include inherited fields (flattens inheritance for Datomic)
               (map (fn [[field-name {:keys [cardinality type unique? unique-id index component doc] :as field-def}]]
                      (let [datomic-type (az-type->datomic-type type)]
                        {:db/ident (keyword (name class-name) (name field-name))
@@ -46,7 +47,7 @@
                         :db/tupleType (when (map? type)
                                         (az-type->datomic-type (get type ':*)))
                         }))
-                   (:fields class-def)))
+                   (alzs/all-fields schema class-name)))
             kinds)
     ;; Note enum-type is thrown on the floor; no real place to put it
     (mapcat (fn [[enum-type {:keys [values doc]}]]
