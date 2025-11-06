@@ -3,4 +3,6 @@
 {:source "candelx-schema.edn"
  :output-path "resources/public/schema/candelx/" ; {{version}}
  :edge-labels? false
+ :height 20                             ;Note: in inches, what graphviz likes
+ :width 20
  }
