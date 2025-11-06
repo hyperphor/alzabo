@@ -1,6 +1,6 @@
 # alzabo
 
-A simple schema management and documentation tool for graph-based systems. [Live example](https://hyperphor.github.io/alzabo/). TODO get this working
+A simple schema management and documentation tool for graph-based systems. [Live example](https://hyperphor.github.io/alzabo/). 
 
 ![Alzabo](resources/public/screenshot.png)
 
