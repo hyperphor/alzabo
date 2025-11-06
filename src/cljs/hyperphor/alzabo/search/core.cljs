@@ -84,7 +84,11 @@
           (kind-link (first params))
           [:div.doc (highlight-name (get-in @(rf/subscribe [:schema]) [:kinds (first params) :fields (second params) :doc]) user-string)]]
     enum [:div "Enumeration " (kind-link (first params) (highlight-name (name (first params)) user-string))]
-    enum-value [:div "Value " (highlight-name (name (second params)) user-string) " of enumeration " (kind-link (first params))]))
+    enum-value [:div "Value "
+                (highlight-name (name (second params)) user-string)
+                " (" (highlight-name (nth params 2) user-string)
+                ") of enumeration "
+                (kind-link (first params))]))
 
 (defn ui
   []

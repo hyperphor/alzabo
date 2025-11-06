@@ -33,8 +33,10 @@
 
 (defn enum-dict [enums dict]
   (reduce (fn [dict [enum {:keys [values]}]]
-            (reduce (fn [dict [v _]]
-                       (add-def-key dict v (list 'enum-value enum v))) 
+            (reduce (fn [dict [v doc]]
+                      (-> dict
+                          (add-def-key v (list 'enum-value enum v doc))
+                          (add-def-text doc (list 'enum-value enum v doc)))) 
                     (add-def-key dict enum (list 'enum enum))
                     values))
           dict
