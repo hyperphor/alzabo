@@ -154,7 +154,7 @@
   [file]
   (config/output-path file))
 
-(def alzabo-link "https://github.com/caNDELbio/alzabo") ;TODO config
+(def alzabo-link "https://github.com/hyperphor/alzabo") ;TODO config
 
 (defn- html-out
   [file title the-html version]

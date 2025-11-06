@@ -26,7 +26,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # TODO Macos only
       - name: Install lein
         run: brew install leiningen
 
@@ -37,12 +36,12 @@ jobs:
         run: lein with-profile +prod,-dev cljsbuild once
 
       - name: Build CANDEL doc
-        run: lein run resources/candel/candel-config.edn documentation
+        run: lein run resources/candel/candelx-config.edn documentation
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: resources/public/schema/candel
+          path: resources/public/schema/candelx
           retention-days: 14
 
     # Deploy job

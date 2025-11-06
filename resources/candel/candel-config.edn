@@ -1,10 +1,7 @@
-;;; This is config for CANDEL. Assumes that Pret is available as a sibling directory to Alzabo
+;;; This is config for generating CANDEL docs from source (Datomic/metabodel).
 
 {:source :candel
  :candel-schema-path "."  
  :output-path "resources/public/schema/candel/" ; {{version}}
  :edge-labels? false
- :reference? true
- :main-color "lightsteelblue"
- :reference-color "moccasin"
  }

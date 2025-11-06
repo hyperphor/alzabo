@@ -1,0 +1,6 @@
+;;; This is config for generating CANDEL docs from an LLM-augmented version of the schema. Used for sample site. 
+
+{:source "candelx-schema.edn"
+ :output-path "resources/public/schema/candelx/" ; {{version}}
+ :edge-labels? false
+ }
