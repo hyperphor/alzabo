@@ -138,3 +138,7 @@
   (let [schema (schema/read-schema schema-file)]
     (hyperphor.alzabo.datagen/generate-entities
      kind schema :kind-modifier extra)))
+
+(comment
+  (doseq [f (ju/content-files "resources/generated/")]
+    (demo (str f) (fs/base-name f))))

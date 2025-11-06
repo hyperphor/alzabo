@@ -18,6 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/project.clj') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       # TODO Macos only
       - name: Install lein
         run: brew install leiningen
