@@ -85,8 +85,8 @@
     [field
      {:type real-type
       :cardinality (ns->key (get info :db/cardinality))
-      :unique (ns->key (get info :db/unique))
-      :component (get info :db/isComponent)
+      :unique? (ns->key (get info :db/unique))
+      :component? (get info :db/isComponent)
       :doc (get info :db/doc)
       :attribute namespaced
       }]))
@@ -94,7 +94,7 @@
 (defn read-enums
   "Returns [enums version], where enums is a map of enum names (keyword) to list of possible values"
   []
-  (let [raw (read-edn (str (config/config :pret-path) "/resources/schema/enums.edn"))
+  (let [raw (read-edn (config/realize-path (str (config/config :candel-schema-path) "/enums.edn")))
         version (some #(and (= :candel/schema (:db/ident %))
                             (:candel.schema/version %))
                       raw)]
@@ -104,11 +104,11 @@
           (u/map-values (fn [values] {:values (zipmap values (map name values))})))
      version]))
 
-(defn read-schema
+(defn produce-schema
   []
   {:post [(schema/validate-schema %)]}
-  (let [basic-atts (read-edn (str (config/config :pret-path) "/resources/schema/schema.edn"))
-        [_ entity-meta reference-meta] (read-edn (str (config/config :pret-path) "/resources/schema/metamodel.edn"))
+  (let [basic-atts (read-edn (config/realize-path (str (config/config :candel-schema-path) "/schema.edn")))
+        [_ entity-meta reference-meta] (read-edn (config/realize-path (str (config/config :candel-schema-path) "/metamodel.edn")))
         field-index (field-index basic-atts reference-meta)
         kinds (map :kind/name entity-meta)
         kind-defs (map (fn [em]
@@ -137,30 +137,5 @@
       :categories {:reference {:color "moccasin" :label "Reference"},
                    :experimental {:color "lightsteelblue" :label "Experimental"}}})))
 
-(defn metamodel 
-  "Generate a Pret metamodel from an Alzabo schema"
-  [{:keys [kinds enums] :as schema} & [{:keys [enum-doc?] :or {enum-doc? true}}]]
-  (let [metamodel-fixed (read-edn "resources/candel/metamodel-fixed.edn")
-        entity-metadata
-        (for [[kind {:keys [unique-id parent label]}] kinds]
-          (u/clean-map
-           {:kind/name kind
-            :kind/need-uid unique-id     ;TODO Not quite right
-            :kind/parent parent
-            :kind/context-id label       ;TODO ?
-            }))
-        reference-meta-attributes
-        (filter
-         identity
-         (mapcat (fn [[kind {:keys [fields]}]]
-                   (map (fn [[field {:keys [type]}]]
-                         (when (not (get schema/primitives type))
-                           {:db/id (keyword (name kind) (name field))
-                            :ref/from kind 
-                            :ref/to type}
-                           ))
-                       fields))
-                kinds))
-        ]
-    [metamodel-fixed entity-metadata reference-meta-attributes]))
+
           

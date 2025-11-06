@@ -1,5 +1,5 @@
 (ns hyperphor.alzabo.core
-  (:require #_ [hyperphor.alzabo.candel :as candel]
+  (:require [hyperphor.alzabo.import.candel :as candel]
             [hyperphor.alzabo.schema :as schema]
             [hyperphor.alzabo.config :as config]
             [hyperphor.alzabo.html :as html]
@@ -45,11 +45,13 @@
 
 (defmethod do-command :documentation
   [_ {:keys [schema-file]}] 
-  (let [schema (schema schema-file)]
-    #_ (when (= (config/config :source) :candel)
-      ;; write out derived Alzabo schemas
-      (write-alzabo schema))
-    (html/schema->html schema)))
+  (if (= (config/config :source) :candel)
+    ;; write out derived Alzabo schemas
+    (let [schema (candel/produce-schema)]
+      (write-alzabo schema)
+      (html/schema->html schema))
+    (let [schema (schema schema-file)]
+      (html/schema->html schema))))
 
 (defmethod do-command :datomic
   [_ _]
