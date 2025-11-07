@@ -1,6 +1,6 @@
 # alzabo
 
-A simple schema management and documentation tool for graph-based systems. [Live example](https://hyperphor.github.io/alzabo/). 
+A schema management and documentation tool for graph-shaped knowledge sources. [Example](https://hyperphor.github.io/alzabo/). 
 
 ![Alzabo](resources/public/screenshot.png)
 
@@ -19,42 +19,27 @@ Import:
 Export:
 - Tool to generate Datomic schemas from Alzabo format
 
+Schema Generation:
+ - Tool to generate arbitrary domain schemas 
 
-## Schema format
+# Schema format
 
-Schemas are represented as EDN maps. See [an example](test/resources/schema/rawsugar.edn) or the [schema spec](src/cljc/hyperphor/alzabo/schema.cljc).
+See [documentation](doc/schema-format.md)
 
-`:title` a string
-`:version` a string
-`:kinds` a map of kind names (keywords) to kind definitions (see below)
-`:enums` A map of enum names (keywords) to sequence of enum values (also keywords, generally namespaced)
+# Credits & License
 
-A kind definition is a map with attributes:
-`:fields`: a map of field names (keywords) to field definitions
-`:description` a string
+Originally developed by Mike Travers at the Parker Institute for Cancer Immunotherapy as part of the CANDEL project.
 
-A field definition is a map with attributes:
-`:type` can be:
- - a keyword, either a kind name, a primitive
- - a vector of types (defines a Datomic heterogenous tuple)
- - a map of the form `{:* <type>}` (defines a Datomic homogenous tuple)
-   Default is `:string`
-`:doc` a string
-`:cardinality` Either `:one` (default) or `:many`
-`:unique?` Either `:identity` or `:value`, see [Datomic doc](https://docs.datomic.com/on-prem/schema.html#operational-schema-attributes) for details.
-`:unique-id` (deprecated) `true` means the same as `:unique :identity`
- `:attribute` the datomic or sparql attribute corresponding to the field 
+Released under [Apache 2.0 License](https://opensource.org/license/apache-2-0).
 
-The defined primitives are `#{:string :boolean :float :double :long :bigint :bigdec :instant :keyword :uuid}`. 
-
-## Installation
+# Installation
 
 To generate documentation, you need graphviz installed. On the Mac, you can do this with
 
     $ brew install graphviz
 
 
-## Usage
+# Usage
 
 ### Install as local library
 
@@ -76,7 +61,7 @@ You can run these commands with `lein run <config> <cmd>`.
 	
 Generates documentation from the given Alzabo schema file. 
 
-	$ lein run <config? datomic 
+	$ lein run <config> datomic 
 	
 Generates a Datomic schema from the given Alzabo schema file. 
 
@@ -105,11 +90,14 @@ Add dependency `[hyperphor/alzabo <version>]
       (html/schema->html schema "public/schema" {}))
 
 
-# Schema Generation
+## Schema Generation
 
-TODO refine
+Alzabo can generate a complete domain ontology for you using an LLM.:
 
-    (hyperphor.alzabo.core/full-demo "scientists" "scientists")
 
-# Credits
+    export OPENAI_API_KEY=<your OpenAI key>
+    lein repl
+    (full-demo "model rocketry" "rockets")  ; or use your favorint doamin
+
+
 
