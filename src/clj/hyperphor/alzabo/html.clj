@@ -334,15 +334,16 @@
                                  {:fontname graph-font
                                   :label (name label)})))
                              )))
-          ;; Add inheritance edges with dashed lines
+        ;; Add inheritance edges with dashed lines (child -> parent)
           (doseq [parent (schema/get-parents schema kind)]
             (println (format "%s -> %s [%s];"
+                             (clean kind) ;TODO might want to swap these
                              (clean parent)
-                             (clean kind)
                              (attributes {:style "dashed"
-                                         :arrowhead "empty"
-                                         :color "#4CAF50"
-                                         :penwidth "2.0"})))))
+                                          :arrowhead "empty"
+                                          :color "#4CAF50"
+                                          :penwidth "2.0"})))))
+
         (println "}"))
       (println "Generating .svg")
       (sh-errchecked
