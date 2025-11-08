@@ -233,7 +233,7 @@
                        [:td (:description kind)]]
                       )]
                    ])))]
-           [:divv.m-23
+           [:div.m-2
             [:h2 "Enums"]
             [:table.table-sm
              (for [enum (sort (keys enums))]
