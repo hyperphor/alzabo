@@ -85,11 +85,19 @@
 
 (defn extract-clojure
   [s]
-  (let [[type code text] (extract-code s)]
-    (if (= type :clojure)               ;or :edn
-      [(read-string code) text]         ;TODO safety
-      )))  
+  (try                                  ;TODO pull out into macro → way
+    (let [[type code text] (extract-code s)]
+      (if (= type :clojure)               ;or :edn
+        [(read-string code) text]         ;TODO safety
+        ))
+    (catch Exception e
+      (throw (ex-info "Clojure extract failure"{:s s})))))  
 
+(comment
+  (extract-clojure "```clojure
+{:a 1}
+```")
+  )
 
 (defn json-query
   [str]

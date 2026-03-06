@@ -10,8 +10,9 @@
 (def sample-schema "/opt/mt/repos/hyperphor/alzabo/resources/jazz-schema.edn")
 
 (defn sgen
-  [domain]
-  (let [query (format "Create an Alzabo schema for the %s domain, using the example as a guide. Include classes, attributes, and relations. For each attribuate and relation, include a type and a documentation string" domain)]
+  [domain & [extra]]
+  (let [extra (or extra "")
+        query (u/tx "Create an Alzabo schema for the {{domain}} domain, using the example as a guide. Include classes, attributes, and relations. For each attribuate and relation, include a type and a documentation string. {{extra}}")]
     (-> {:model "gpt-4.1"
          :messages [{:role "system" :content system-prompt}
                     {:role "user" :content query}

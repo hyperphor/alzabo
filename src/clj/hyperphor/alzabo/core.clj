@@ -25,10 +25,10 @@
 ;;; :candel special casing removed
 (defn- schema
   [schema-file]
-  (let [schema-file (or schema-file  (config/realize-path (config/config :source)))
+  (let [schema-file (or schema-file (config/realize-path (config/config :source)))
         schema (schema/read-schema schema-file)]
-     (config/set! :version (:version schema)) ;?
-     schema))
+    (config/set! :version (:version schema)) ;?
+    schema))
 
 ;;; New config-file machinery
 
@@ -121,8 +121,8 @@
 
 ;;; Generaste a schema from a domain description (and display it)
 (defn full-demo
-  [domain sname]
-  (let [schema (sgl/sgen domain)
+  [domain sname & [extra]]
+  (let [schema (sgl/sgen domain extra)
         schema-file (u/tx "resources/generated/{{sname}}.edn")]
     (output/write-schema schema schema-file)
     (demo schema-file sname))) 
@@ -133,6 +133,10 @@
   (full-demo "scientists" "scientists"))
 
 
+(comment
+  (doseq [f (ju/content-files "resources/generated/")]
+    (demo (str f) (fs/base-name f))))
+
 (defn demo-entities
   [schema-file kind extra]
   (let [schema (schema/read-schema schema-file)]
@@ -140,5 +144,45 @@
      kind schema :kind-modifier extra)))
 
 (comment
-  (doseq [f (ju/content-files "resources/generated/")]
-    (demo (str f) (fs/base-name f))))
+  (demo-entities "/opt/mt/repos/hyperphor/alzabo/resources/generated/drugs.edn" :PyschoactiveDrug "fictional"))
+
+
+;;; → multitool or way, haven't I written this a million times already?
+;;; TODO needs moar options
+(defn- column-label
+  [c]
+  (if (map? c)
+    (or (get c :label)
+        (name (get c :key)))
+    (name c)))
+
+(defn- column-row-cell
+  [c row]
+  (if (:url c)
+    [:a {:href (u/expand-template (:url c) row)}
+     (column-row-cell (dissoc c :url) row)]
+    (get row (or (get c :key) c))))        ;TODO value munging
+
+(defn table
+  [data columns]
+  `[:table.table {:class "table"}
+    [:tbody
+     [:tr
+      ~@(for [c columns]
+          [:th (column-label c)])]                          ;todo
+     ~@(for [r data]
+         `[:tr ~@(map (fn [c] [:td (column-row-cell c r)]) columns)])
+     ]])
+
+(defn directory
+  []
+  (let [dirs (filter fs/directory? (fs/list-dir "resources/public/schema"))
+        schemas (map #(assoc (schema/read-schema (str % "/schema.edn")) :file (fs/base-name %))
+                     dirs)]
+    (config/set! :output-path "resources/public/schema/") ;TODO what I get for being unclojurish
+    (html/html-out
+     "directory.html"
+     "Directory of generared schemas"
+     (html/page-html
+      "Schema Directory"
+      (table schemas [{:key :file :url  "{{file}}/index.html"} :title :description]) false))))

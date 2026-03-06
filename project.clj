@@ -34,10 +34,10 @@
   :test-paths ["test/cljc" "test/clj" "test/cljs"]
   :aliases {"launch" ["do"
                       ["clean"]
-                      ["run" "resources/candel-config.edn" "datomic"]
-                      ["run" "resources/candel-config.edn" "documentation"]
+                      ["run" "resources/candel/candel-config.edn" "datomic"]
+                      ["run" "resources/candel/candel-config.edn" "documentation"]
                       ["cljsbuild" "once"]
-                      ["run" "resources/candel-config.edn" "server" ]
+                      ["run" "resources/candel/candel-config.edn" "server" ]
                       ]}
   :main hyperphor.alzabo.core
   :target-path "target/%s"
