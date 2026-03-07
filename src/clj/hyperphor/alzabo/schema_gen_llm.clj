@@ -12,7 +12,7 @@
 (defn sgen
   [domain & [extra]]
   (let [extra (or extra "")
-        query (u/tx "Create an Alzabo schema for the {{domain}} domain, using the example as a guide. Include classes, attributes, and relations. For each attribuate and relation, include a type and a documentation string. {{extra}}")]
+        query (u/tx "Create an Alzabo schema for the {{domain}} domain, using the example as a guide. Include classes, attributes, and relations. For each attribute and relation, include a type and a documentation string. For each string attribute, include an :examples key with 2-3 representative example values as a vector of strings. {{extra}}")]
     (-> {:model "gpt-4.1"
          :messages [{:role "system" :content system-prompt}
                     {:role "user" :content query}
