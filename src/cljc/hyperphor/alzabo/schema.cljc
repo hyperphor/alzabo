@@ -21,6 +21,7 @@
 
 (s/def ::cardinality #{:one :many})
 (s/def ::doc string?)
+(s/def ::examples (s/coll-of string?))
 
 ;;; Note: this insane rigamarole is so schema can actually detect undefined keys in a map. Should use it eslewhere.
 (defmacro strict-keys [& {:keys [req req-un opt opt-un]}]
@@ -53,7 +54,7 @@
 
 (s/def ::field (strict-keys :req-un []
                             :opt-un [::type ::cardinality ::required? ::unique? ::component?
-                                     ::doc ;TODO ::examples, ::generator
+                                     ::doc ::examples
                                      ::index ::attribute
                                      ::min ::max]))
 

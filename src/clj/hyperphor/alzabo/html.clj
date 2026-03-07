@@ -74,7 +74,11 @@
    {:display (comp boold :required?)
     :heading "required?"}
    {:display (fn [fieldprops] (linkify (:doc fieldprops)))
-    :heading "doc"}])
+    :heading "doc"}
+   {:display (fn [fieldprops]
+               (when-let [examples (seq (:examples fieldprops))]
+                 [:span {:class "examples"} (s/join ", " examples)]))
+    :heading "examples"}])
 
 (def kind-inverse-columns
   [{:display field-spec-html
