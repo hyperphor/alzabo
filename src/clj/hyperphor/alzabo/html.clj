@@ -371,7 +371,7 @@
     (html-out (str (name enum) ".html")
               (format "%s - %s - Alzabo" (name enum) title)
               (enum->html enum (get enums enum))
-              version))
+              ))
   (write-graphviz schema (output-file "schema.dot"))
   (html-out "index.html"
             (format "%s - Alzabo" title)

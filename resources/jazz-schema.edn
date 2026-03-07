@@ -6,11 +6,14 @@
   {:description "A jazz musician or performer",
    :reference? true,
    :fields
-   {:name {:type :string, :required? true, :doc "Full name of the musician"},
-    :stageName {:type :string, :doc "Professional/stage name if different from real name"},
+   {:name {:type :string, :required? true, :doc "Full name of the musician"
+           :examples ["Miles Davis" "John Coltrane" "Thelonious Monk"]},
+    :stageName {:type :string, :doc "Professional/stage name if different from real name"
+                :examples ["Bird" "Dizzy" "Trane"]},
     :birthDate {:type :Date, :doc "Date of birth"},
     :deathDate {:type :Date, :doc "Date of death if deceased"},
-    :birthPlace {:type :string, :doc "City/country of birth"},
+    :birthPlace {:type :string, :doc "City/country of birth"
+                 :examples ["New York, USA" "New Orleans, USA" "Philadelphia, USA"]},
     :instruments {:type :Instrument, :cardinality :many, :doc "Instruments played by this musician"},
     :genres {:type :Genre, :cardinality :many, :doc "Primary genres associated with this musician"},
     :bands {:type :Band, :cardinality :many, :doc "Bands this musician has been part of"},
@@ -58,9 +61,12 @@
     :lyricist {:type :Musician, :doc "Lyricist if different from composer"},
     :publishDate {:type :Date, :doc "Date of first publication"},
     :genre {:type :Genre, :doc "Primary genre classification"},
-    :keySignature {:type :string, :doc "Musical key (e.g., 'C major', 'Bb minor')"},
-    :timeSignature {:type :string, :doc "Time signature (e.g., '4/4', '3/4')"},
-    :tempo {:type :string, :doc "Tempo marking (e.g., 'Medium Swing', 'Ballad')"},
+    :keySignature {:type :string, :doc "Musical key (e.g., 'C major', 'Bb minor')"
+                   :examples ["C major" "Bb minor" "F# major"]},
+    :timeSignature {:type :string, :doc "Time signature (e.g., '4/4', '3/4')"
+                    :examples ["4/4" "3/4" "6/8"]},
+    :tempo {:type :string, :doc "Tempo marking (e.g., 'Medium Swing', 'Ballad')"
+            :examples ["Medium Swing" "Ballad" "Up Tempo"]},
     :duration {:type :int, :doc "Duration in seconds for original version"},
     :recordings {:type :Recording, :cardinality :many, :doc "Recordings of this song"},
     :isStandard {:type :boolean, :doc "Whether this is considered a jazz standard"},
