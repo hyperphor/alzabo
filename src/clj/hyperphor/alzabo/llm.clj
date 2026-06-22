@@ -91,13 +91,23 @@
         [(read-string code) text]         ;TODO safety
         ))
     (catch Exception e
-      (throw (ex-info "Clojure extract failure"{:s s})))))  
+      (throw (ex-info "Clojure extract failure" {:s s})))))  
 
 (comment
   (extract-clojure "```clojure
 {:a 1}
 ```")
   )
+
+(defn extract-edn
+  [s]
+  (or (extract-clojure s)
+      (try                                  ;TODO pull out into macro → way
+        (read-string s)
+        (catch Exception e
+          (throw (ex-info "EDN extract failure" {:s s})))))  
+  )
+
 
 (defn json-query
   [str]

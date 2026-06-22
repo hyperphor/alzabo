@@ -9,20 +9,48 @@
 
 (def sample-schema "/opt/mt/repos/hyperphor/alzabo/resources/jazz-schema.edn")
 
-(defn sgen
-  [domain & [extra]]
-  (let [extra (or extra "")
-        query (u/tx "Create an Alzabo schema for the {{domain}} domain, using the example as a guide. Include classes, attributes, and relations. For each attribute and relation, include a type and a documentation string. For each string attribute, include an :examples key with 2-3 representative example values as a vector of strings. {{extra}}")]
+;;; Phase 1: enumerate the kinds (entity types) for the domain before writing any fields.
+;;; This forces the model to think about the full entity model first, so phase 2 can
+;;; use reference types instead of lazily falling back to :string.
+(defn- generate-kinds
+  [domain extra]
+  (let [query (u/tx "List all significant entity types (kinds) needed for a {{domain}} domain schema. {{extra}}
+Include not just the main entities but also supporting types that are often lazily represented as strings — things like anatomical parts, material types, classifications, controlled vocabularies, etc. that benefit from being first-class entities with their own attributes.
+Return ONLY a Clojure map (no prose) of keyword kind-names to brief description strings.
+Example: {:Fossil \"A preserved specimen\" :AnatomicalPart \"A body part or skeletal element\" :Taxon \"A taxonomic unit\"}")]
+    (-> {:model "gpt-4.1"
+         :messages [{:role "system" :content system-prompt}
+                    {:role "user" :content query}]}
+        llm/run-chat-completion
+        (get-in [:choices 0 :message :content])
+        llm/extract-edn
+        )))
+
+;;; Phase 2: generate full field definitions, with the kinds list in context so the model
+;;; knows what reference types are available and uses them instead of :string.
+(defn- generate-schema-from-kinds
+  [domain kinds-map extra]
+  (let [kinds-list (str/join ", " (map name (keys kinds-map)))
+        query (u/tx "Create a complete Alzabo schema for the {{domain}} domain using exactly these kinds: {{kinds-list}}.
+For each kind, define its fields with :type, :cardinality (when :many), :doc, and for string fields :examples with 2-3 representative values.
+IMPORTANT: whenever a field represents a concept that exists as a kind in the list above, use a reference type (the kind keyword) rather than :string.
+{{extra}}")]
     (-> {:model "gpt-4.1"
          :messages [{:role "system" :content system-prompt}
                     {:role "user" :content query}
-                    {:role "user" :content (str "example: " (slurp sample-schema))}
-                    ]}
+                    {:role "user" :content (str "kinds with descriptions: " (pr-str kinds-map))}
+                    {:role "user" :content (str "example schema format: " (slurp sample-schema))}]}
         llm/run-chat-completion
         (get-in [:choices 0 :message :content])
         llm/extract-clojure
-        first
-        )))
+        first)))
+
+(defn sgen
+  [domain & [extra]]
+  (let [extra (or extra "")
+        kinds-map (generate-kinds domain extra)]
+    (prn :kinds kinds-map)
+    (generate-schema-from-kinds domain kinds-map extra)))
 
 ;;; Adds documentation strings to CANDEL, which is a bit lacking in that regard
 (defn add-doc
