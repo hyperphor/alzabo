@@ -60,10 +60,14 @@
 
 (s/def ::fields (s/map-of keyword? ::field))
 
-(s/def ::kind (s/keys :req-un [::fields] ;::inherits, but CANDEL not using that.
+(s/def ::extends (s/or :single keyword?
+                       :multiple (s/coll-of keyword? :kind vector?)))
+
+(s/def ::kind (s/keys :req-un [::fields]
                       :opt-un [::doc
                                ::uri
-                               ::reference?])) ;TODO reference is too CANDEL-specific, replace with a kind-labels or tags or something
+                               ::reference?  ;TODO reference is too CANDEL-specific, replace with a kind-labels or tags or something
+                               ::extends]))
                       
 (s/def ::kinds (s/map-of keyword? ::kind :conform-keys? true))
 
@@ -82,11 +86,14 @@
 (s/def ::schema (s/keys :req-un [::kinds]
                         :opt-un [::enums ::version ::title]))
 
+;; Forward declaration for inheritance validation (defined later in file)
+(declare validate-inheritance)
+
 (defn validate-schema [schema]
   (if (s/valid? ::schema schema)
-    schema
+    (validate-inheritance schema)
     (if (nil? (s/explain-data ::schema schema)) ;TODO for some reason even when schema valid, s/valid? fails, but this woorks
-      schema
+      (validate-inheritance schema)
       (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)})))))
 
 ;;; One in multitool is broken
@@ -206,4 +213,115 @@
                           (:fields kdf)))
              {}
              schema))
+
+;;; Inheritance utilities
+
+(defn normalize-extends
+  "Convert :extends to a vector for consistent handling.
+   Accepts single keyword or vector of keywords."
+  [extends]
+  (cond
+    (nil? extends) []
+    (keyword? extends) [extends]
+    (vector? extends) extends
+    :else []))
+
+(defn get-parents
+  "Get direct parent kinds of a kind"
+  [schema kind-name]
+  (let [kind-def (get-in schema [:kinds kind-name])]
+    (normalize-extends (:extends kind-def))))
+
+(defn get-ancestors
+  "Get all ancestors of a kind (transitive closure of parents).
+   Returns a sequence in breadth-first order.
+   Detects and throws on circular inheritance."
+  [schema kind-name]
+  (loop [to-visit [kind-name]
+         visited #{}
+         ancestors []]
+    (if (empty? to-visit)
+      ancestors
+      (let [current (first to-visit)
+            rest-to-visit (rest to-visit)]
+        (if (contains? visited current)
+          (if (= current kind-name)
+            (throw (ex-info "Circular inheritance detected"
+                           {:kind kind-name
+                            :cycle (conj ancestors current)}))
+            (recur rest-to-visit visited ancestors))
+          (let [parents (get-parents schema current)
+                new-ancestors (if (= current kind-name)
+                               []
+                               (conj ancestors current))]
+            (recur (concat rest-to-visit parents)
+                   (conj visited current)
+                   new-ancestors)))))))
+
+(defn deep-merge-field
+  "Deep merge field definitions. Child field properties override parent,
+   but :doc strings are concatenated."
+  [parent-field child-field]
+  (let [parent-doc (:doc parent-field)
+        child-doc (:doc child-field)
+        merged-doc (cond
+                     (and parent-doc child-doc)
+                     (str child-doc " (extends: " parent-doc ")")
+
+                     child-doc child-doc
+                     parent-doc parent-doc
+                     :else nil)
+        base-merge (merge parent-field child-field)]
+    (if merged-doc
+      (assoc base-merge :doc merged-doc)
+      base-merge)))
+
+(defn inherited-fields
+  "Get all fields inherited from parent kinds with deep merge.
+   Fields from later parents override earlier ones, and local fields override all."
+  [schema kind-name]
+  (let [ancestors (reverse (get-ancestors schema kind-name))] ; Reverse so closest ancestors override
+    (reduce (fn [acc ancestor]
+              (let [ancestor-fields (get-in schema [:kinds ancestor :fields])]
+                (merge-with deep-merge-field acc ancestor-fields)))
+            {}
+            ancestors)))
+
+(defn all-fields
+  "Get all fields for a kind including inherited fields merged with local fields"
+  [schema kind-name]
+  (let [inherited (inherited-fields schema kind-name)
+        local (get-in schema [:kinds kind-name :fields])]
+    (merge-with deep-merge-field inherited local)))
+
+;;; Inheritance validation
+
+(defn validate-parent-exists
+  "Check that all parent kinds exist in the schema"
+  [schema kind-name]
+  (let [parents (get-parents schema kind-name)
+        all-kinds (set (keys (:kinds schema)))
+        missing (remove all-kinds parents)]
+    (when (seq missing)
+      (throw (ex-info "Parent kind(s) do not exist"
+                     {:kind kind-name
+                      :missing-parents missing})))))
+
+(defn validate-no-cycles
+  "Check for circular inheritance in a kind"
+  [schema kind-name]
+  (try
+    (get-ancestors schema kind-name)
+    (catch #?(:clj Exception :cljs js/Error) e
+      (throw (ex-info "Circular inheritance detected"
+                     {:kind kind-name
+                      :message #?(:clj (.getMessage e) :cljs (.-message e))})))))
+
+(defn validate-inheritance
+  "Validate all inheritance relationships in a schema"
+  [schema]
+  (doseq [kind-name (keys (:kinds schema))]
+    (validate-parent-exists schema kind-name)
+    (validate-no-cycles schema kind-name))
+  schema)
 
