@@ -110,23 +110,39 @@
 
 ;;; Schema is actually just the kinds structure
 (defn- kind->html
-  [kind schema]
-  (let [{:keys [unique-id label fields description]} (get schema kind)]
+  [kind raw-schema]
+  (let [kind-def (get-in raw-schema [:kinds kind])
+        {:keys [unique-id label fields description extends]} kind-def
+        parents (schema/get-parents raw-schema kind)
+        inherited (schema/inherited-fields raw-schema kind)
+        all-fields (schema/all-fields raw-schema kind)]
     (html
      [:div.container
       (backlink)
       [:h1 (name kind)]
       (when description
         [:div {:class "kind_doc"} description])
+
+      ;; Show inheritance
+      (when (seq parents)
+        [:div {:style "margin: 1em 0; padding: 0.5em; background-color: #f5f5f5; border-left: 3px solid #4CAF50;"}
+         [:b "Extends: "]
+         (interpose ", " (map kind-link parents))])
+
+      [:h3 "Fields"]
       [:table {:class "table"}
        (table-headings kind-metadata-columns)
-       (for [[field props] (into (sorted-map) fields)]
-         (field->html field props kind-metadata-columns))]
+       (for [[field props] (into (sorted-map) all-fields)]
+         (let [is-inherited (contains? inherited field)
+               props-with-note (if is-inherited
+                                 (update props :doc #(str (or % "") " [inherited]"))
+                                 props)]
+           (field->html field props-with-note kind-metadata-columns)))]
 
       [:h3 "Inverse Relations"]
       [:table {:class "table"}
        (table-headings kind-inverse-columns)
-       (for [[field props] (into (sorted-map) (get (schema/inverse-fields schema) kind))]
+       (for [[field props] (into (sorted-map) (get (schema/inverse-fields raw-schema) kind))]
          (field->html field props kind-inverse-columns))]
 
       (when unique-id
@@ -333,7 +349,17 @@
                                (when (config/config :edge-labels?)
                                  {:fontname graph-font
                                   :label (name label)})))
-                             ))))
+                             )))
+        ;; Add inheritance edges with dashed lines (child -> parent)
+          (doseq [parent (schema/get-parents schema kind)]
+            (println (format "%s -> %s [%s];"
+                             (clean kind) ;TODO might want to swap these
+                             (clean parent)
+                             (attributes {:style "dashed"
+                                          :arrowhead "empty"
+                                          :color "#4CAF50"
+                                          :penwidth "2.0"})))))
+
         (println "}"))
       (println "Generating .svg")
       (sh-errchecked
@@ -376,6 +402,7 @@
   (html-out "index.html"
             (format "%s - Alzabo" title)
             (index->html schema version)
+            #_ version
             )
   #_ (make-link (output-file "js") "../../js") ;argh. Necessary apparently, net infrastructure no longer lets .. work
   #_ (make-link (output-file "alzabo.css") "../../alzabo.css")

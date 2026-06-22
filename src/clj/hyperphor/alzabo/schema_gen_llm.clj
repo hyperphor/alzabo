@@ -1,13 +1,15 @@
 (ns hyperphor.alzabo.schema-gen-llm
   (:require [hyperphor.multitool.core :as u]
             [clojure.string :as str]
-            [hyperphor.alzabo.llm :as llm]))
+            [hyperphor.alzabo.llm :as llm]
+            [hyperphor.alzabo.schema :as schema]))
 
 
 (def system-prompt
   "You are a knowledge representation expert who knows how to create clean and elegant ontologies and schemas for various domains")
 
-(def sample-schema "/opt/mt/repos/hyperphor/alzabo/resources/jazz-schema.edn")
+(def sample-schema "resources/jazz-schema.edn")
+(def sample-schema "test/resources/schema/jazz.edn")
 
 ;;; Phase 1: enumerate the kinds (entity types) for the domain before writing any fields.
 ;;; This forces the model to think about the full entity model first, so phase 2 can
@@ -45,6 +47,14 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
         llm/extract-clojure
         first)))
 
+
+;;; The new model doesn't do subtypes. Should have a way to try this one. 
+(comment
+  ;; old sgen-prompt
+  "Create an Alzabo schema for the %s domain, using the example as a guide. Include classes, attributes, and relations. For each attribuate and relation, include a type and a documentation string. Try to include some subtype (extends) relations"
+    )
+
+
 (defn sgen
   [domain & [extra]]
   (let [extra (or extra "")
@@ -56,6 +66,21 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
 (defn add-doc
   [domain schema]
   (let [query (format "Given this Alzabo schema for the %s domain, add documentation to each kind, attribute, and enum value if id doesn't already exist" domain)]
+    (-> {:model "gpt-4.1"
+         :messages [{:role "system" :content system-prompt}
+                    {:role "user" :content query}
+                    {:role "user" :content (str "schema: " (print-str schema))}
+                    ]}
+        llm/run-chat-completion
+        (get-in [:choices 0 :message :content])
+        ;; Produces incorrect edn with ellipses, so extracted and edited by hand
+        #_ llm/extract-clojure
+        #_ first
+        )))
+
+(defn improve-doc
+  [domain schema]
+  (let [query (format "Given this Alzabo schema for the %s domain, improve the documentation string for each kind, attribute, and enum value, make it more human readable. Return a new improved schema in the same format" domain)]
     (-> {:model "gpt-4.1"
          :messages [{:role "system" :content system-prompt}
                     {:role "user" :content query}
@@ -80,4 +105,9 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
    "resources/public/schema/candel/schemax.edn")
 
   (hyperphor.alzabo.core/demo  "resources/public/schema/candel/schemax.edn" "candelx")
+  )
+
+
+(comment
+  (def schema (schema/read-schema "/opt/mt/repos/pici/okc/resources/schema.alz.edn"))
   )
