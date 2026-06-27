@@ -4,6 +4,7 @@ Schemas are represented as EDN maps. See [an example](test/resources/schema/raws
 
 - `:title` a string
 - `:version` a string
+- `:merge` an array of pathnames to schemas to merge in
 - `:kinds` a map of kind names (keywords) to kind definitions (see below)
 - `:enums` A map of enum names (keywords) to sequence of enum values (also keywords, generally namespaced)
 

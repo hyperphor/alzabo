@@ -6,6 +6,7 @@
             [clojure.set :as set]
             ))
 
+;;; Note: :merge keyword is processed out during read so not validated
 
 (def numeric-primitives #{:long :float :number :bigint})
 (def primitives (set/union
@@ -169,15 +170,37 @@
     (update ns :enums merge (into {} @new-enums))))
 
 
+;;; TODO → multitool
+(defn merge*
+  [mcar & mcdr]
+  (if (empty? mcdr)
+    mcar
+    (apply merge* (cons (u/merge-recursive mcar (first mcdr))
+                        (rest mcdr)))))
 #?
 (:clj
+
+(do
+(declare read-schema)
+
+(defn handle-merge
+  [s]
+  (if (:merge s)
+    (let [merges (mapv read-schema ;TODO path resolution
+                      (:merge s))]
+      (apply merge* (conj merges (dissoc s :merge))))
+    s))
+
  (defn read-schema
    [source]
+   (prn :read-schema source)
    (-> source
        slurp
        read-string
+       handle-merge
        infer-enums
-       validate-schema)))
+       validate-schema))
+ ))
 
 ;;; Schema introspection utilities
 
