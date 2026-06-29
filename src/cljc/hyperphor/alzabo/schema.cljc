@@ -193,6 +193,7 @@
 
  (defn read-schema
    [source]
+   (prn :read-schema source)
    (-> source
        slurp
        read-string
