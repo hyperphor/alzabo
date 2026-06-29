@@ -6,7 +6,7 @@
             [clojure.set :as set]
             ))
 
-;;; Note: :merge keyword is processed out during read so not validated
+;;; Note: :include keyword is processed out during read so not validated
 
 (def numeric-primitives #{:long :float :number :bigint})
 (def primitives (set/union
@@ -183,12 +183,12 @@
 (do
 (declare read-schema)
 
-(defn handle-merge
+(defn handle-include
   [s]
-  (if (:merge s)
+  (if (:include s)
     (let [merges (mapv read-schema ;TODO path resolution
-                      (:merge s))]
-      (apply merge* (conj merges (dissoc s :merge))))
+                      (:include s))]
+      (apply merge* (conj merges (dissoc s :include))))
     s))
 
  (defn read-schema
@@ -196,7 +196,7 @@
    (-> source
        slurp
        read-string
-       handle-merge
+       handle-include
        infer-enums
        validate-schema))
  ))

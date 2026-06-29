@@ -1,9 +1,9 @@
-(ns hyperphor.alzabo.schema-merge-test
+(ns hyperphor.alzabo.schema-include-test
   (:require [hyperphor.alzabo.schema :as schema]
             [clojure.test :refer :all]))
 
-(deftest merge-test
-  (let [merged (schema/read-schema "test/resources/schema/merge/okc-radiohead.edn")]
+(deftest include-test
+  (let [merged (schema/read-schema "test/resources/schema/include/okc-radiohead.edn")]
     ;; new kind
     (is (= #{:subject :sample :illness}
            (set (keys (:kinds merged)))))

@@ -1,5 +1,5 @@
 {:version "2.0"
- :merge ["test/resources/schema/merge/okc-basic.edn"] ;TODO support relative path
+ :include ["test/resources/schema/include/okc-basic.edn"] ;TODO support relative path
  :kinds
  {:subject
   {:fields
