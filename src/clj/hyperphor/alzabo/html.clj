@@ -17,7 +17,7 @@
 
 (defn- kind-link
   [kind]
-  (html [:a {:href (kind-url kind)}
+  (html [:a.kind {:href (kind-url kind)}
          kind]))
 
 ;;; TODO links in docs
@@ -112,7 +112,7 @@
 (defn- kind->html
   [kind raw-schema]
   (let [kind-def (get-in raw-schema [:kinds kind])
-        {:keys [unique-id label fields description extends]} kind-def
+        {:keys [unique-id label fields doc extends]} kind-def
         parents (schema/get-parents raw-schema kind)
         inherited (schema/inherited-fields raw-schema kind)
         all-fields (schema/all-fields raw-schema kind)]
@@ -120,8 +120,8 @@
      [:div.container
       (backlink)
       [:h1 (name kind)]
-      (when description
-        [:div {:class "kind_doc"} description])
+      (when doc
+        [:div {:class "kind_doc"} (linkify doc)])
 
       ;; Show inheritance
       (when (seq parents)
@@ -247,34 +247,34 @@
            (slurp (output-file "schema.dot.cmapx")) 
            ]]
          [:div.row
-          [:div.hstack {:style {:align-items :start}}
-           [:div.m-2
-            [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
-            (if true ; (> (count categories) 1)
-              (for [category-name (keys categories)]
-                (let [kinds (category-name groups)
-                      category (category-name categories)]
-                  [:div
-                   (when (:label category)
-                     [:h3 {:style (header-style (:color category))}
-                      (:label category)])
-                   [:table.table.table-sm
-                    (for [kind (sort-by :id kinds)]
-                      [:tr
-                       [:th (kind-html (:id kind))]
-                       [:td (:description kind)]]
-                      )]
-                   ])))]
-           [:div.m-2
-            [:h2 "Enums"]
-            [:table.table-sm
-             (for [enum (sort (keys enums))]
-               [:tr
-                [:th (kind-html enum)]
-                [:td (:doc enum)]
-                [:td (enum-samples (get enums enum))]
-                ]
-               )]]]]
+          [:div.m-2
+           [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
+           (if true ; (> (count categories) 1)
+             (for [category-name (keys categories)]
+               (let [kinds (category-name groups)
+                     category (category-name categories)]
+                 [:div
+                  (when (:label category)
+                    [:h3 {:style (header-style (:color category))}
+                     (:label category)])
+                  [:table.table.table-sm
+                   (for [kind (sort-by :id kinds)]
+                     [:tr
+                      [:th (kind-html (:id kind))]
+                      [:td (linkify (:doc kind))]]
+                     )]
+                  ])))]]
+         [:div.row
+          [:div.m-2
+           [:h2 "Enums"]
+           [:table.table-sm
+            (for [enum (sort (keys enums))]
+              [:tr
+               [:th (kind-html enum)]
+               [:td (linkify (:doc (get enums enum)))]
+               [:td (enum-samples (get enums enum))]
+               ]
+              )]]]
          ;; Pass the schema to clojurescript widget inside an invisible div
          ;; See hyperphor.alzabo.search.core/get-schema
          [:div#aschema {:style (style-arg {:display "none"})}
@@ -391,7 +391,7 @@
   (doseq [kind (keys kinds)]
     (html-out (str (name kind) ".html")
               (format "%s - %s - Alzabo" (name kind) title)
-              (kind->html kind kinds)
+              (kind->html kind schema)
              ))
   (doseq [enum (keys enums)]
     (html-out (str (name enum) ".html")

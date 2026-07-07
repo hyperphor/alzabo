@@ -5,6 +5,7 @@
             [clojure.string :as str]
             [clojure.set :as set]
             [clojure.walk :as walk]
+            [clojure.edn :as edn]
             ))
 
 ;;; Note: :include keyword is processed out during read so not validated
@@ -205,7 +206,7 @@
   (binding [*dir* (path-dir source)]
     (-> source
         slurp
-        read-string
+        edn/read-string
         handle-include
         infer-enums
         #_ validate-schema
@@ -299,6 +300,9 @@
   (let [parent-doc (:doc parent-field)
         child-doc (:doc child-field)
         merged-doc (cond
+                     (= parent-doc child-doc)
+                     child-doc
+
                      (and parent-doc child-doc)
                      (str child-doc " (extends: " parent-doc ")")
 
