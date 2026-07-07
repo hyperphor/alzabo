@@ -6,7 +6,7 @@
             [hyperphor.multitool.core :as u]
             ))
 
-;;; TODO investigate Bosquet https://github.com/zmedelis/bosquet
+;;; TODO flush this and use ellellem
 
 ;;; TODO this should be changeable, maybe through config
 (def system-prompt

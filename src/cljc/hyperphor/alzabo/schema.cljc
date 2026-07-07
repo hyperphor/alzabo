@@ -4,6 +4,7 @@
             [camel-snake-kebab.core :as csk]
             [clojure.string :as str]
             [clojure.set :as set]
+            [clojure.walk :as walk]
             ))
 
 ;;; Note: :include keyword is processed out during read so not validated
@@ -149,7 +150,7 @@
   [s]
   (let [new-enums (atom [])
         ns
-        (clojure.walk/postwalk
+        (walk/postwalk
          (fn [thing]
            (if (and (map-entry? thing)
                     (= :enumerated (:type (second thing))))
@@ -183,24 +184,33 @@
 (do
 (declare read-schema)
 
+(def ^:dynamic *dir* "")
+
 (defn handle-include
   [s]
   (if (:include s)
-    (let [merges (mapv read-schema ;TODO path resolution
-                      (:include s))]
+    (let [merges (mapv #(read-schema (str *dir* "/" %)) ;TODO path resolution
+                       (:include s))]
       (apply merge* (conj merges (dissoc s :include))))
     s))
 
- (defn read-schema
-   [source]
-   (prn :read-schema source)
-   (-> source
-       slurp
-       read-string
-       handle-include
-       infer-enums
-       validate-schema))
- ))
+;;; → Multitool
+(defn path-dir
+  [p]
+  (second (re-find #"(.*)/(.*)" p)))
+
+(defn read-schema
+  [source]
+  (prn :read-schema source)
+  (binding [*dir* (path-dir source)]
+    (-> source
+        slurp
+        read-string
+        handle-include
+        infer-enums
+        #_ validate-schema
+        ))
+  )))
 
 ;;; Schema introspection utilities
 
