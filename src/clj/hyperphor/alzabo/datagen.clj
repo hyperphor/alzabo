@@ -4,7 +4,7 @@
             [hyperphor.multitool.core :as u]
             [clojure.string :as str]
             [clojure.data.json :as json]
-            [hyperphor.alzabo.llm :as llm])
+            [hyperphor.ellellem.core :as llm])
   (:import [java.time LocalDate LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util UUID]))
@@ -88,7 +88,7 @@
                          (assoc :field-list (str/join ", " (map name (keys (:fields sdef)))))
                          (assoc :context-string (if context (context-string context) ""))
                          ))
-        llm/json-query
+        llm/query-json
         ;; TODO clean format (or use structured response), keys, turn "" to nil
         regularize
         (add-kind kind)

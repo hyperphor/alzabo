@@ -1,7 +1,8 @@
 (ns hyperphor.alzabo.schema-gen-llm
   (:require [hyperphor.multitool.core :as u]
             [clojure.string :as str]
-            [hyperphor.alzabo.llm :as llm]
+            [hyperphor.ellellem.core :as llm]
+            [hyperphor.ellellem.extract :as llme]
             [hyperphor.alzabo.schema :as schema]))
 
 
@@ -23,9 +24,9 @@ Example: {:Fossil \"A preserved specimen\" :AnatomicalPart \"A body part or skel
     (-> {:model "gpt-4.1"
          :messages [{:role "system" :content system-prompt}
                     {:role "user" :content query}]}
-        llm/run-chat-completion
+        llm/complete
         (get-in [:choices 0 :message :content])
-        llm/extract-edn
+        llme/extract-edn
         )))
 
 ;;; Phase 2: generate full field definitions, with the kinds list in context so the model
@@ -42,9 +43,9 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
                     {:role "user" :content query}
                     {:role "user" :content (str "kinds with descriptions: " (pr-str kinds-map))}
                     {:role "user" :content (str "example schema format: " (slurp sample-schema))}]}
-        llm/run-chat-completion
+        llm/complete
         (get-in [:choices 0 :message :content])
-        llm/extract-clojure
+        llme/extract-clojure
         first)))
 
 
@@ -71,7 +72,7 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
                     {:role "user" :content query}
                     {:role "user" :content (str "schema: " (print-str schema))}
                     ]}
-        llm/run-chat-completion
+        llm/complete
         (get-in [:choices 0 :message :content])
         ;; Produces incorrect edn with ellipses, so extracted and edited by hand
         #_ llm/extract-clojure
@@ -86,7 +87,7 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
                     {:role "user" :content query}
                     {:role "user" :content (str "schema: " (print-str schema))}
                     ]}
-        llm/run-chat-completion
+        llm/complete
         (get-in [:choices 0 :message :content])
         ;; Produces incorrect edn with ellipses, so extracted and edited by hand
         #_ llm/extract-clojure
