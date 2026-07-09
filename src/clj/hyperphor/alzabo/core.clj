@@ -44,14 +44,15 @@
   (output/write-schema schema (config/output-path "alzabo-schema.edn"))) 
 
 (defmethod do-command :documentation
-  [_ {:keys [schema-file]}] 
-  (if (= (config/config :source) :candel)
-    ;; write out derived Alzabo schemas
-    (let [schema (candel/produce-schema)]
-      (write-alzabo schema)
-      (html/schema->html schema))
-    (let [schema (schema schema-file)]
-      (html/schema->html schema))))
+  [_ {:keys [schema-file]}]
+  (let [output-path (config/output-path "")]
+    (if (= (config/config :source) :candel)
+      ;; write out derived Alzabo schemas
+      (let [schema (candel/produce-schema)]
+        (write-alzabo schema)
+        (html/schema->html schema output-path))
+      (let [schema (schema schema-file)]
+        (html/schema->html schema output-path)))))
 
 (defmethod do-command :datomic
   [_ _]
@@ -179,8 +180,8 @@
   (let [dirs (filter fs/directory? (fs/list-dir "resources/public/schema"))
         schemas (map #(assoc (schema/read-schema (str % "/schema.edn")) :file (fs/base-name %))
                      dirs)]
-    (config/set! :output-path "resources/public/schema/") ;TODO what I get for being unclojurish
     (html/html-out
+     "resources/public/schema/"
      "directory.html"
      "Directory of generared schemas"
      (html/page-html

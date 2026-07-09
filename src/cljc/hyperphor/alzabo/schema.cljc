@@ -87,8 +87,19 @@
 
 (s/def ::uri (s/or :string string? :key keyword?))
 
+;;; HTML/graph rendering options; presentation details of a schema rather
+;;; than deployment config, so they live on the schema itself.
+(s/def ::categories (s/map-of keyword? map?))
+(s/def ::explanation coll?)
+(s/def ::orientation #{:horizontal :vertical})
+(s/def ::width number?)
+(s/def ::height number?)
+(s/def ::edge-labels? boolean?)
+
 (s/def ::schema (s/keys :req-un [::kinds]
-                        :opt-un [::enums ::version ::title]))
+                        :opt-un [::enums ::version ::title
+                                 ::categories ::explanation ::orientation
+                                 ::width ::height ::edge-labels?]))
 
 ;; Forward declaration for inheritance validation (defined later in file)
 (declare validate-inheritance)

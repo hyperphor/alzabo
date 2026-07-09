@@ -1,26 +1,15 @@
 (ns hyperphor.alzabo.html-test
   (:require [clojure.test :refer :all]
             [hyperphor.alzabo.schema :as schema]
-            [hyperphor.alzabo.config :as config]
             [me.raynes.fs :as fs]
             [hyperphor.alzabo.html :refer :all]))
 
-;;; TODO this machinery should be for all tests
-(def test-config "test/resources/test-config.edn")
-
-(defn with-test-config [f]
-  ;; Test with authentication off
-  (config/set-config! test-config)
-  (config/set! :output-path (str (fs/temp-dir "alzabo") "/"))
-  (f))
-
-(use-fixtures :each with-test-config)
-
 ;;; Basic smoke test
 (deftest test-html-gen
-  (let [schema (schema/read-schema "test/resources/schema/rawsugar.edn")]
-    (schema->html schema)
-    (let [files (map fs/split-ext (fs/list-dir (config/config :output-path)))]
+  (let [schema (schema/read-schema "test/resources/schema/rawsugar.edn")
+        output-path (str (fs/temp-dir "alzabo") "/")]
+    (schema->html schema output-path)
+    (let [files (map fs/split-ext (fs/list-dir output-path))]
       (is (= #{["index" ".html"]
                ["operation" ".html"]
                ["row" ".html"]
@@ -41,9 +30,10 @@
       )))
 
 (deftest test-tuples
-  (let [schema (schema/read-schema "test/resources/schema/gxp.edn")]
-    (schema->html schema)
-    (let [experiment (slurp (str (config/config :output-path) "experiment.html"))]
+  (let [schema (schema/read-schema "test/resources/schema/gxp.edn")
+        output-path (str (fs/temp-dir "alzabo") "/")]
+    (schema->html schema output-path)
+    (let [experiment (slurp (str output-path "experiment.html"))]
       ;; Test that type link rendered properly
       (is (re-find (re-pattern "[<a href=\"gene.html\"> float]") experiment)))))
 

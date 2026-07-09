@@ -1,11 +1,11 @@
-(defproject com.hyperphor/alzabo "1.3.1" ;with schema validation disabled
+(defproject com.hyperphor/alzabo "1.3.2" 
   :description "Semantic schema format and tools, for Datomic and other uses."
   :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
   :dependencies [
                  [com.hyperphor/multitool "0.2.4"]
-                 [com.hyperphor/ellellem "0.1.2-SNAPSHOT"]
+                 [com.hyperphor/ellellem "0.1.2"]
                  [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
                  [aero "1.1.6"]

@@ -101,3 +101,7 @@ Alzabo can generate a complete domain ontology for you using an LLM.:
 
 
 
+# History
+1.3.0  Incorporate into PICI/okc
+1.3.1  Turn off schema validation which is broken 
+1.3.2   Use ellellem, revamp html gen for easier library use.
