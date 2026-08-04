@@ -263,14 +263,15 @@
          [:div.row
           [:div.m-2
            [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
-           (if true ; (> (count categories) 1)
+           (if (> (count categories) 1)
              (for [category-name (keys categories)]
                (let [kinds (category-name groups)
                      category (category-name categories)]
                  [:div
-                  (when (:label category)
-                    [:h3 {:style (header-style (:color category))}
-                     (:label category)])
+                  [:h3 {:style (header-style (:color category))}
+                   (or (:label category)
+                       (inflect/titleize category-name))
+                   ]
                   [:table.table.table-sm
                    (for [kind (sort-by :id kinds)]
                      [:tr
