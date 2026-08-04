@@ -14,7 +14,7 @@
 ;;; itself (with these as fallback defaults) since they're presentation
 ;;; details of a particular schema, not deployment config.
 (def default-graph-options
-  {:edge-labels? true
+  {:edge-labels? :minimal
    :width 100
    :height 64
    :orientation :horizontal
@@ -359,7 +359,10 @@
                              (attributes
                               (merge
                                {:arrowhead (if (= cardinality :many) "diamond" "normal")} ;"crow" is better semantically but looks bad on ovals.
-                               (when edge-labels?
+                               (if (case edge-labels?
+                                     :minimal (not (= label ref))
+                                     true true
+                                     :else false)
                                  {:fontname graph-font
                                   :label (name label)})))
                              )))
