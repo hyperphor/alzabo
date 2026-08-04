@@ -4,6 +4,7 @@
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [me.raynes.fs :as fs]
+            [inflections.core :as inflect]
             [clojure.java.io :as io]
             [clojure.java.shell :as shell])
   (:import [java.nio.file Files Path LinkOption]
@@ -360,7 +361,8 @@
                               (merge
                                {:arrowhead (if (= cardinality :many) "diamond" "normal")} ;"crow" is better semantically but looks bad on ovals.
                                (if (case edge-labels?
-                                     :minimal (not (= label ref))
+                                     :minimal (not (or (= label ref)
+                                                       (= (name label) (inflect/plural ref))))
                                      true true
                                      :else false)
                                  {:fontname graph-font
