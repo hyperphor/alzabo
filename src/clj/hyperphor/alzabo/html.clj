@@ -221,9 +221,8 @@
   [color]
   (style-arg
    {:background color
-    :display "inline"
     :padding-left "6px"
-    :padding-right "6px"}))
+    }))
 
 (defn enum-samples
   [enum]

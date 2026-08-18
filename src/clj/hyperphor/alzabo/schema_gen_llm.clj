@@ -1,8 +1,8 @@
 (ns hyperphor.alzabo.schema-gen-llm
   (:require [hyperphor.multitool.core :as u]
             [clojure.string :as str]
-            [hyperphor.ellellem.core :as llm]
-            [hyperphor.ellellem.extract :as llme]
+            [hyperphor.ellum.core :as llm]
+            [hyperphor.ellum.extract :as llme]
             [hyperphor.alzabo.schema :as schema]))
 
 

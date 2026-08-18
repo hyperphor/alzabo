@@ -5,7 +5,7 @@
              :url "https://opensource.org/licenses/Apache-2.0"}
   :dependencies [
                  [com.hyperphor/multitool "0.3.0"]
-                 [com.hyperphor/ellellem "0.1.2"]
+                 [com.hyperphor/ellum "0.1.3"]
                  [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
                  [inflections "0.15.0"]

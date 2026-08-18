@@ -4,7 +4,7 @@
             [hyperphor.multitool.core :as u]
             [clojure.string :as str]
             [clojure.data.json :as json]
-            [hyperphor.ellellem.core :as llm])
+            [hyperphor.ellum.core :as llm])
   (:import [java.time LocalDate LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util UUID]))
