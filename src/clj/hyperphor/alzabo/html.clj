@@ -262,22 +262,30 @@
          [:div.row
           [:div.m-2
            [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
-           (if (> (count categories) 1)
-             (for [category-name (keys categories)]
-               (let [kinds (category-name groups)
-                     category (category-name categories)]
-                 [:div
+           ;; Bug fix: the category header (h3) is only worth showing when
+           ;; there's more than one category -- a single-category schema
+           ;; (the common case, :categories defaulting to just {:default
+           ;; ...}) doesn't need a redundant "Default" heading. That used to
+           ;; be gated by wrapping the *whole* `for` in `(if (> (count
+           ;; categories) 1) ...)` with no else clause, which meant the
+           ;; entities table itself silently vanished whenever there was
+           ;; only one category -- always run the loop; only the header is
+           ;; conditional.
+           (for [category-name (keys categories)]
+             (let [kinds (category-name groups)
+                   category (category-name categories)]
+               [:div
+                (when (> (count categories) 1)
                   [:h3 {:style (header-style (:color category))}
                    (or (:label category)
-                       (inflect/titleize category-name))
-                   ]
-                  [:table.table.table-sm
-                   (for [kind (sort-by :id kinds)]
-                     [:tr
-                      [:th (kind-html (:id kind))]
-                      [:td (linkify (:doc kind))]]
-                     )]
-                  ])))]]
+                       (inflect/titleize category-name))])
+                [:table.table.table-sm
+                 (for [kind (sort-by :id kinds)]
+                   [:tr
+                    [:th (kind-html (:id kind))]
+                    [:td (linkify (:doc kind))]]
+                   )]
+                ]))]]
          [:div.row
           [:div.m-2
            [:h2 "Enums"]
