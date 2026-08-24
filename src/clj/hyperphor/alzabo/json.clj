@@ -1,7 +1,6 @@
 (ns hyperphor.alzabo.json
   (:require [hyperphor.multitool.core :as u]
             [hyperphor.multitool.cljcore :as ju]
-            [hyperphor.alzabo.config :as config]
             [clojure.data.json :as json]
             [clojure.walk :as w]))
 

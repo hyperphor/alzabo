@@ -4,7 +4,7 @@
             [hyperphor.multitool.core :as u]
             [clojure.string :as str]
             [clojure.data.json :as json]
-            [hyperphor.alzabo.llm :as llm])
+            [hyperphor.ellum.core :as llm])
   (:import [java.time LocalDate LocalDateTime]
            [java.time.format DateTimeFormatter]
            [java.util UUID]))
@@ -70,6 +70,8 @@
       (u/some-thing regularize x))))
 
 ;;; TODO fix ::keywords
+;;; TODO Need richer context, with attributes and multiple.
+;;; Uses JSON format which might be easier than trying to do edn.
 (defn generate-entities
   "Ask LLM to generate entities based on schema.
   context is a related object (eg a Band for generating Songs)
@@ -80,13 +82,13 @@
         sdef (schema/kind-def schema kind)]
     (assert sdef "Kind not found in schema")
     (->> (u/expand-template
-                     "Please give me a list of {{count}} {{kind-modifier}} {{id}} {{description}} {{context-string}} as a list of maps in json format. For each, include the following fields: {{field-list}}. Return a json-formatted list of entities, with no extraneous text"
+                     "Please give me a list of {{count}} {{kind-modifier}} {{id}} {{context-string}} as a list of maps in json format. For each, include the following fields: {{field-list}}. Return a json-formatted list of entities, with no extraneous text. Generate correct json without comments or ellipses."
                      (-> sdef
                          (merge params)
                          (assoc :field-list (str/join ", " (map name (keys (:fields sdef)))))
                          (assoc :context-string (if context (context-string context) ""))
                          ))
-        llm/json-query
+        llm/query-json
         ;; TODO clean format (or use structured response), keys, turn "" to nil
         regularize
         (add-kind kind)
@@ -98,14 +100,59 @@
 
 ;;; High-level generation orchestration
 
-(defn determine-generation-order
-  "Determine the order to generate entities based on dependencies"
+(defn kind-dependencies
+  "Get the kinds that a given kind depends on (via field references)"
+  [schema kind-name]
+  (let [kind-def (get-in schema [:kinds kind-name])
+        fields (:fields kind-def)
+        all-kinds (set (keys (:kinds schema)))
+        primitives schema/primitives]
+    (->> fields
+         vals
+         (map :type)
+         ;; Handle tuples - extract types from vectors
+         (mapcat (fn [t] (if (vector? t) t [t])))
+         ;; Filter to only kind references (not primitives, not enums)
+         (filter keyword?)
+         (filter all-kinds)
+         (remove primitives)
+         ;; Remove self-references for data generation ordering
+         (remove #{kind-name})
+         distinct
+         vec)))
+
+(defn topological-sort
+  "Topological sort of kinds based on dependencies.
+   Returns a sequence of kinds in dependency order (dependencies first).
+   Handles cycles by breaking them arbitrarily."
   [schema]
-  ;; For now, use a simple heuristic: reference entities first, then others
-  (let [kinds (keys (:kinds schema))
-        reference-kinds (filter #(get-in schema [:kinds % :reference?]) kinds)
-        non-reference-kinds (filter #(not (get-in schema [:kinds % :reference?])) kinds)]
-    (concat reference-kinds non-reference-kinds)))
+  (let [all-kinds (keys (:kinds schema))
+        deps-map (into {} (map (fn [k] [k (kind-dependencies schema k)]) all-kinds))]
+    (loop [result []
+           remaining (set all-kinds)
+           deps deps-map]
+      (if (empty? remaining)
+        result
+        (let [;; Find kinds with no remaining dependencies
+              no-deps (filter (fn [k]
+                               (every? (complement remaining) (get deps k)))
+                             remaining)]
+          (if (seq no-deps)
+            ;; Process kinds with no dependencies
+            (recur (into result no-deps)
+                   (apply disj remaining no-deps)
+                   deps)
+            ;; Cycle detected - just pick one arbitrarily
+            (let [next-kind (first remaining)]
+              (recur (conj result next-kind)
+                     (disj remaining next-kind)
+                     deps))))))))
+
+(defn determine-generation-order
+  "Determine the order to generate entities based on field dependencies.
+   Kinds that are referenced by others are generated first."
+  [schema]
+  (topological-sort schema))
 
 (defn generate-sample-data
   "Generate sample data for an entire schema"

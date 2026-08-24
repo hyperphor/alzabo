@@ -4,8 +4,11 @@
             [camel-snake-kebab.core :as csk]
             [clojure.string :as str]
             [clojure.set :as set]
+            [clojure.walk :as walk]
+            [clojure.edn :as edn]
             ))
 
+;;; Note: :include keyword is processed out during read so not validated
 
 (def numeric-primitives #{:long :float :number :bigint})
 (def primitives (set/union
@@ -21,6 +24,7 @@
 
 (s/def ::cardinality #{:one :many})
 (s/def ::doc string?)
+(s/def ::examples (s/coll-of string?))
 
 ;;; Note: this insane rigamarole is so schema can actually detect undefined keys in a map. Should use it eslewhere.
 (defmacro strict-keys [& {:keys [req req-un opt opt-un]}]
@@ -53,7 +57,7 @@
 
 (s/def ::field (strict-keys :req-un []
                             :opt-un [::type ::cardinality ::required? ::unique? ::component?
-                                     ::doc ;TODO ::examples, ::generator
+                                     ::doc ::examples
                                      ::index ::attribute
                                      ::min ::max]))
 
@@ -83,8 +87,19 @@
 
 (s/def ::uri (s/or :string string? :key keyword?))
 
+;;; HTML/graph rendering options; presentation details of a schema rather
+;;; than deployment config, so they live on the schema itself.
+(s/def ::categories (s/map-of keyword? map?))
+(s/def ::explanation coll?)
+(s/def ::orientation #{:horizontal :vertical})
+(s/def ::width number?)
+(s/def ::height number?)
+(s/def ::edge-labels? boolean?)
+
 (s/def ::schema (s/keys :req-un [::kinds]
-                        :opt-un [::enums ::version ::title]))
+                        :opt-un [::enums ::version ::title
+                                 ::categories ::explanation ::orientation
+                                 ::width ::height ::edge-labels?]))
 
 ;; Forward declaration for inheritance validation (defined later in file)
 (declare validate-inheritance)
@@ -96,15 +111,9 @@
       (validate-inheritance schema)
       (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)})))))
 
-;;; One in multitool is broken
-(defn strip-chars
-  "Removes every character of a given set from a string"
-  [removed s]
-  (apply str (remove #((set removed) %) s)))
-
 (defn clean-string
   [s]
-  (strip-chars "()," s))
+  (u/strip-chars "()," s))
 
 ;;; Kebab, but handle some strings separately
 (defn safe-kebab-case
@@ -135,19 +144,17 @@
         name
         (str/replace "_" " "))))
 
-;;; → Multitool - this is the cheap-ass way to do BK's 2-way structs. Not efficient of course
+;;;  this is the cheap-ass way to do BK's 2-way structs. Not efficient of course
 (defn struct-parent
   [struct thing]
   (u/walk-find-path 
    #(= % thing) struct))
 
-
-
 (defn infer-enums
   [s]
   (let [new-enums (atom [])
         ns
-        (clojure.walk/postwalk
+        (walk/postwalk
          (fn [thing]
            (if (and (map-entry? thing)
                     (= :enumerated (:type (second thing))))
@@ -168,15 +175,48 @@
     (update ns :enums merge (into {} @new-enums))))
 
 
+
+;;; in multitool now
+(defn merge*
+  [mcar & mcdr]
+  (if (empty? mcdr)
+    mcar
+    (apply merge* (cons (u/merge-recursive mcar (first mcdr))
+                        (rest mcdr)))))
+
 #?
 (:clj
- (defn read-schema
-   [source]
-   (-> source
-       slurp
-       read-string
-       infer-enums
-       validate-schema)))
+
+(do
+(declare read-schema)
+
+(def ^:dynamic *dir* "")
+
+(defn handle-include
+  [s]
+  (if (:include s)
+    (let [merges (mapv #(read-schema (str *dir* "/" %)) ;TODO path resolution
+                       (:include s))]
+      (apply merge* (conj merges (dissoc s :include))))
+    s))
+
+;;; → Multitool
+(defn path-dir
+  [p]
+  (second (re-find #"(.*)/(.*)" p)))
+
+(defn read-schema
+  [source]
+  (prn :read-schema source)
+  (binding [*dir* (path-dir source)]
+    (-> source
+        slurp
+        edn/read-string
+        handle-include
+        infer-enums
+        #_ validate-schema
+        ))
+  )))
 
 ;;; Schema introspection utilities
 
@@ -265,6 +305,9 @@
   (let [parent-doc (:doc parent-field)
         child-doc (:doc child-field)
         merged-doc (cond
+                     (= parent-doc child-doc)
+                     child-doc
+
                      (and parent-doc child-doc)
                      (str child-doc " (extends: " parent-doc ")")
 

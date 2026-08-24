@@ -7,6 +7,8 @@
             [hyperphor.multitool.core :as u])
   )
 
+;;; TODO Mostly OBSO now? Decided its overkill and anything needed can be put in schema itself.
+
 ;;; See resources/default-config.edn
 
 (def the-config (atom nil))
