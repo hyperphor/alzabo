@@ -262,15 +262,6 @@
          [:div.row
           [:div.m-2
            [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
-           ;; Bug fix: the category header (h3) is only worth showing when
-           ;; there's more than one category -- a single-category schema
-           ;; (the common case, :categories defaulting to just {:default
-           ;; ...}) doesn't need a redundant "Default" heading. That used to
-           ;; be gated by wrapping the *whole* `for` in `(if (> (count
-           ;; categories) 1) ...)` with no else clause, which meant the
-           ;; entities table itself silently vanished whenever there was
-           ;; only one category -- always run the loop; only the header is
-           ;; conditional.
            (for [category-name (keys categories)]
              (let [kinds (category-name groups)
                    category (category-name categories)]

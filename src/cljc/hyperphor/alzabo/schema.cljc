@@ -111,15 +111,9 @@
       (validate-inheritance schema)
       (throw (ex-info "Schema invalid" {:explanation (s/explain-str ::schema schema)})))))
 
-;;; One in multitool is broken
-(defn strip-chars
-  "Removes every character of a given set from a string"
-  [removed s]
-  (apply str (remove #((set removed) %) s)))
-
 (defn clean-string
   [s]
-  (strip-chars "()," s))
+  (u/strip-chars "()," s))
 
 ;;; Kebab, but handle some strings separately
 (defn safe-kebab-case
@@ -150,13 +144,11 @@
         name
         (str/replace "_" " "))))
 
-;;; → Multitool - this is the cheap-ass way to do BK's 2-way structs. Not efficient of course
+;;;  this is the cheap-ass way to do BK's 2-way structs. Not efficient of course
 (defn struct-parent
   [struct thing]
   (u/walk-find-path 
    #(= % thing) struct))
-
-
 
 (defn infer-enums
   [s]
@@ -183,13 +175,15 @@
     (update ns :enums merge (into {} @new-enums))))
 
 
-;;; TODO → multitool
+
+;;; in multitool now
 (defn merge*
   [mcar & mcdr]
   (if (empty? mcdr)
     mcar
     (apply merge* (cons (u/merge-recursive mcar (first mcdr))
                         (rest mcdr)))))
+
 #?
 (:clj
 
