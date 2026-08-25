@@ -1,10 +1,10 @@
-(defproject com.hyperphor/alzabo "1.3.5"
+(defproject com.hyperphor/alzabo "1.3.6"
   :description "Semantic schema format and tools, for Datomic and other uses."
   :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
   :dependencies [
-                 [com.hyperphor/multitool "0.3.0"]
+                 [com.hyperphor/multitool "0.3.1"]
                  [com.hyperphor/ellum "0.1.3"]
                  [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
