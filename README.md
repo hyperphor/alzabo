@@ -102,6 +102,16 @@ Alzabo can generate a complete domain ontology for you using an LLM.:
 
 
 # History
-1.3.0  Incorporate into PICI/okc
-1.3.1  Turn off schema validation which is broken 
-1.3.2   Use ellellem, revamp html gen for easier library use.
+- 1.0.0  Initial open source release, as `org.parkerici/alzabo`
+- 1.0.1  Renamed to `org.candelbio/alzabo`; mods for use as a library, OpenAPI import
+- 1.1.0  GitHub Pages deployment of generated documentation
+- 1.2.1  GraphQL import, config-driven categories/colors, misc CANDEL/Ganymede integration work
+- 1.2.2  Replace clj-http with hato; LLM-based schema/entity generation
+- 1.3.0  Incorporate into PICI/okc; renamed to `com.hyperphor/alzabo`
+- 1.3.1  Turn off schema validation which is broken
+- 1.3.2  Use ellum, revamp html gen for easier library use
+- 1.3.3  output-path as a param to html gen, deprecate config-based paths
+- 1.3.4  Only generate edge labels where there's a need
+- 1.3.5  Make edge labels plural-aware, upgrade deps
+- 1.3.6  Fix Entities section rendering blank for single-category schemas
+
