@@ -67,11 +67,15 @@
 (s/def ::extends (s/or :single keyword?
                        :multiple (s/coll-of keyword? :kind vector?)))
 
+;;; Display icon for a kind, e.g. an emoji ("🎯"); consumers decide how to render it.
+(s/def ::icon string?)
+
 (s/def ::kind (s/keys :req-un [::fields]
                       :opt-un [::doc
                                ::uri
                                ::reference?  ;TODO reference is too CANDEL-specific, replace with a kind-labels or tags or something
-                               ::extends]))
+                               ::extends
+                               ::icon]))
                       
 (s/def ::kinds (s/map-of keyword? ::kind :conform-keys? true))
 
