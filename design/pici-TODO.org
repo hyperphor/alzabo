@@ -1,0 +1,55 @@
+* CANDEL revival
+
+** Why? Anyway, it's working
+** DONE Front page needs better layout, eg multicoilumn
+** DONE Also graph is too big, needs condensing.
+** DONE Kinds need documentation (could produce easily enough with LLM!)
+** TODO enum page should have back references
+
+
+* Possible extensins
+
+** Extend to subtypes!
+** synthetic instance generation
+kind of have this but needs a UI for demo
+   so should be a separate app from alzabo, which is a pain.
+   Alzagen
+     could also have search widget I guess.
+     sigh I hate having all these separate things that keep bleeing into each other.
+     - populate class (with fictional or otherwise entities) – deal with related class issues. Synthetic data
+     - display in grid
+     - make queryable OK NOW IT IS REALLY BLEEDING INTO NLFLAME etc. FUCK!
+      - 
+** iterative refinement of schemas
+** Schema index, deployment
+** search widget should be on all pages
+** package as webapp so I don't have to give demos
+
+
+* for tomorrows Lisp lighting talk
+
+** DONE kind doc strings
+** DONE inverse relations on kind page
+
+
+* for Macroexpand-2 release
+
+** DONE replace Catamite example with something else
+Pared-down Radiohead maybe. No Jazz is good.
+
+** TODO look at Ben's fork
+
+** TODO Hiccup2
+** TODO breakout ui into separate project
+
+** Subtypes
+** Generativity
+in progress
+*** linked objects, saving to db
+
+
+** DONE LLM schema gen
+** DONE New sample model (strip down RADIOHEAD, or Jazz musicans)
+
+** TODO Enflamification
+ - add colors/icons to kind defs

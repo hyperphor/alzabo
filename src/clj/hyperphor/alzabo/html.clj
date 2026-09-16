@@ -343,11 +343,11 @@
                    }
                   ";"))
         (doseq [kind (keys kinds)]
-          (let [{:keys [doc category] :or {category :default}} (get-in schema [:kinds kind])]
+          (let [{:keys [doc category icon] :or {category :default}} (get-in schema [:kinds kind])]
             (println (format "%s [%s];"
                              (clean kind)
                              (attributes {:URL (kind-url kind)
-                                          :label (name kind)
+                                          :label (if icon (str icon " " (name kind)) (name kind))
                                           :tooltip (or doc (name kind))
                                           :style "filled"
                                           :fillcolor (get-in categories [category :color])
