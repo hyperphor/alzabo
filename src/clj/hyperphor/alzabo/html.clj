@@ -25,6 +25,16 @@
   [schema]
   (merge default-graph-options schema))
 
+;;; Bound to the schema for the duration of schema->html, so deeply-nested
+;;; renderers (field type links, index tables, etc) can look up a kind's
+;;; :icon without threading schema through every function.
+(def ^:dynamic *schema* nil)
+
+(defn- kind-icon
+  [kind]
+  (when (keyword? kind)
+    (get-in *schema* [:kinds kind :icon])))
+
 (defn- kind-url
   [kind]
   (str (name kind) ".html"))
@@ -32,6 +42,7 @@
 (defn- kind-link
   [kind]
   (html [:a.kind {:href (kind-url kind)}
+         (when-let [icon (kind-icon kind)] (str icon " "))
          kind]))
 
 ;;; TODO links in docs
@@ -126,14 +137,17 @@
 (defn- kind->html
   [kind raw-schema]
   (let [kind-def (get-in raw-schema [:kinds kind])
-        {:keys [unique-id label fields doc extends]} kind-def
+        {:keys [unique-id label fields doc extends icon]} kind-def
         parents (schema/get-parents raw-schema kind)
         inherited (schema/inherited-fields raw-schema kind)
         all-fields (schema/all-fields raw-schema kind)]
     (html
      [:div.container
       (backlink)
-      [:h1 (name kind)]
+      [:h1
+       (when icon
+         [:span {:style (style-arg {:font-size "1.5em" :margin-right "0.2em"})} icon])
+       (name kind)]
       (when doc
         [:div {:class "kind_doc"} (linkify doc)])
 
@@ -400,37 +414,37 @@
 (defn schema->html
   "Generate HTML docs for a schema, including .svg and related files, writing them to output-path."
   [{:keys [kinds enums version title] :as schema} output-path]
-
-  (clear-directory output-path)
-  ;; Write out the schema itself – used by autocomplete, enflame, etc
-  (with-open [o (clojure.java.io/writer (output-file output-path "schema.edn"))]
-    (pp/pprint schema o))
-  (doseq [kind (keys kinds)]
+  (binding [*schema* schema]
+    (clear-directory output-path)
+    ;; Write out the schema itself – used by autocomplete, enflame, etc
+    (with-open [o (clojure.java.io/writer (output-file output-path "schema.edn"))]
+      (pp/pprint schema o))
+    (doseq [kind (keys kinds)]
+      (html-out output-path
+                (str (name kind) ".html")
+                (format "%s - %s - Alzabo" (name kind) title)
+                (kind->html kind schema)
+               ))
+    (doseq [enum (keys enums)]
+      (html-out output-path
+                (str (name enum) ".html")
+                (format "%s - %s - Alzabo" (name enum) title)
+                (enum->html enum (get enums enum))
+                ))
+    (write-graphviz schema (output-file output-path "schema.dot"))
     (html-out output-path
-              (str (name kind) ".html")
-              (format "%s - %s - Alzabo" (name kind) title)
-              (kind->html kind schema)
-             ))
-  (doseq [enum (keys enums)]
-    (html-out output-path
-              (str (name enum) ".html")
-              (format "%s - %s - Alzabo" (name enum) title)
-              (enum->html enum (get enums enum))
-              ))
-  (write-graphviz schema (output-file output-path "schema.dot"))
-  (html-out output-path
-            "index.html"
-            (format "%s - Alzabo" title)
-            (index->html schema version output-path)
-            #_ version
-            )
-  #_ (make-link (output-file output-path "js") "../../js") ;argh. Necessary apparently, net infrastructure no longer lets .. work
-  #_ (make-link (output-file output-path "alzabo.css") "../../alzabo.css")
-  (io/copy (io/reader (io/resource "public/alzabo.css"))
-           (io/file (output-file output-path "alzabo.css")))
-  (io/copy (io/reader (io/resource "public/jsu/client.js")) ;Copy the uberjar version, which is single-file, so might actually work
-           (io/file (output-file output-path "client.js")))
-  nil
-  )
+              "index.html"
+              (format "%s - Alzabo" title)
+              (index->html schema version output-path)
+              #_ version
+              )
+    #_ (make-link (output-file output-path "js") "../../js") ;argh. Necessary apparently, net infrastructure no longer lets .. work
+    #_ (make-link (output-file output-path "alzabo.css") "../../alzabo.css")
+    (io/copy (io/reader (io/resource "public/alzabo.css"))
+             (io/file (output-file output-path "alzabo.css")))
+    (io/copy (io/reader (io/resource "public/jsu/client.js")) ;Copy the uberjar version, which is single-file, so might actually work
+             (io/file (output-file output-path "client.js")))
+    nil
+    ))
 
 
