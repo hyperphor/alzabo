@@ -256,7 +256,7 @@
                           acc
                           (:fields kdf)))
              {}
-             schema))
+             (:kinds schema)))
 
 ;;; Inheritance utilities
 

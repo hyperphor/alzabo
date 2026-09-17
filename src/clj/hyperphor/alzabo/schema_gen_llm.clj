@@ -22,6 +22,7 @@ Include not just the main entities but also supporting types that are often lazi
 Return ONLY a Clojure map (no prose) of keyword kind-names to brief description strings.
 Example: {:Fossil \"A preserved specimen\" :AnatomicalPart \"A body part or skeletal element\" :Taxon \"A taxonomic unit\"}")]
     (-> {:model "gpt-4.1"
+         :provider :openai
          :messages [{:role "system" :content system-prompt}
                     {:role "user" :content query}]}
         llm/complete
@@ -107,7 +108,6 @@ IMPORTANT: whenever a field represents a concept that exists as a kind in the li
 
   (hyperphor.alzabo.core/demo  "resources/public/schema/candel/schemax.edn" "candelx")
   )
-
 
 (comment
   (def schema (schema/read-schema "/opt/mt/repos/pici/okc/resources/schema.alz.edn"))

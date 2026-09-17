@@ -10,7 +10,7 @@
   (reduce (fn [dict word]
             (add-def-word dict word def))
           dict
-          (str/split (name key) #"-")))
+          (str/split (name key) #"[-_]")))
 
 (defn add-def-text [dict text def]
   (if text
@@ -26,7 +26,9 @@
                       (-> dict
                           (add-def-key prop (list 'prop kindname prop))
                           (add-def-text (get-in kinddef [:fields prop :doc]) (list 'prop kindname prop))))
-                    (add-def-key dict kindname (list 'kind kindname))
+                    (-> dict
+                        (add-def-key kindname (list 'kind kindname))
+                        (add-def-text (:doc kinddef) (list 'kind kindname)))
                     (keys (:fields kinddef))))
           dict
           kinds))
