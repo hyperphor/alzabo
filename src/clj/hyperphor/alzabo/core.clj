@@ -122,11 +122,11 @@
 
 ;;; Generaste a schema from a domain description (and display it)
 (defn full-demo
-  [domain sname & [extra]]
+  [domain & [extra]]
   (let [schema (sgl/sgen domain extra)
-        schema-file (u/tx "resources/generated/{{sname}}.edn")]
+        schema-file (u/tx "resources/generated/{{domain}}.edn")]
     (output/write-schema schema schema-file)
-    (demo schema-file sname))) 
+    (demo schema-file domain))) 
 
 
 (comment 
@@ -148,42 +148,3 @@
   (demo-entities "/opt/mt/repos/hyperphor/alzabo/resources/generated/drugs.edn" :PyschoactiveDrug "fictional"))
 
 
-;;; → multitool or way, haven't I written this a million times already?
-;;; TODO needs moar options
-(defn- column-label
-  [c]
-  (if (map? c)
-    (or (get c :label)
-        (name (get c :key)))
-    (name c)))
-
-(defn- column-row-cell
-  [c row]
-  (if (:url c)
-    [:a {:href (u/expand-template (:url c) row)}
-     (column-row-cell (dissoc c :url) row)]
-    (get row (or (get c :key) c))))        ;TODO value munging
-
-(defn table
-  [data columns]
-  `[:table.table {:class "table"}
-    [:tbody
-     [:tr
-      ~@(for [c columns]
-          [:th (column-label c)])]                          ;todo
-     ~@(for [r data]
-         `[:tr ~@(map (fn [c] [:td (column-row-cell c r)]) columns)])
-     ]])
-
-(defn directory
-  []
-  (let [dirs (filter fs/directory? (fs/list-dir "resources/public/schema"))
-        schemas (map #(assoc (schema/read-schema (str % "/schema.edn")) :file (fs/base-name %))
-                     dirs)]
-    (html/html-out
-     "resources/public/schema/"
-     "directory.html"
-     "Directory of generared schemas"
-     (html/page-html
-      "Schema Directory"
-      (table schemas [{:key :file :url  "{{file}}/index.html"} :title :description]) false))))
