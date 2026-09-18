@@ -3,7 +3,9 @@
   :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"
              :url "https://opensource.org/licenses/Apache-2.0"}
-  :deploy-repositories [["clojars" {:sign-releases false}]]
+  :deploy-repositories [["clojars" {:sign-releases false
+                                     :username :env/clojars_username
+                                     :password :env/clojars_password}]]
   :dependencies [
                  [com.hyperphor/multitool "0.3.1"]
                  [com.hyperphor/ellum "0.1.3"]
