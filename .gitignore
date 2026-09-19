@@ -10,3 +10,7 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+.claude
+scrap/
+output/
+resources/public/jsu/

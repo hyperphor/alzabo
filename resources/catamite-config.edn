@@ -1,5 +1,0 @@
-;;; Documentation generator for catamite.bio
-{:source "catamite-openapi.edn"
- :output-path "resources/public/schema/catamite/{{version}}/" 
- :edge-labels? true
- }
