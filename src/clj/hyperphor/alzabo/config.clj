@@ -19,13 +19,7 @@
 
 ;;; TODO wanted this to be in a resource, but then its hard to get it working when alz is a library...jfc
 (def default-config
-  {
-   :edge-labels? true
-   :width 100
-   :height 64
-   :orientation :horizontal
-   :categories {:default {:color "#a9cce3"}}
-   })
+  {})
 
 (defn read-config
   [path]

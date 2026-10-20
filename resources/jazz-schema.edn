@@ -1,4 +1,4 @@
-{:version "1.0",
+{:version "1.1",
  :title "Jazz Music Database Schema",
  :description "A comprehensive schema for jazz musicians, bands, songs, recordings, genres, and record labels",
  :kinds

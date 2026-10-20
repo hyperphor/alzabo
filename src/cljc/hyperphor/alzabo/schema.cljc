@@ -98,12 +98,17 @@
 (s/def ::orientation #{:horizontal :vertical})
 (s/def ::width number?)
 (s/def ::height number?)
-(s/def ::edge-labels? boolean?)
+(s/def ::edge-labels? #{true false :minimal})
+;;; Raw Graphviz attributes
+(s/def ::graph-attrs (s/map-of keyword? any?))
+(s/def ::node-attrs (s/map-of keyword? any?))
+(s/def ::edge-attrs (s/map-of keyword? any?))
+(s/def ::render (s/keys :opt-un [::orientation ::width ::height ::edge-labels?
+                                 ::graph-attrs ::node-attrs ::edge-attrs]))
 
 (s/def ::schema (s/keys :req-un [::kinds]
                         :opt-un [::enums ::version ::title
-                                 ::categories ::explanation ::orientation
-                                 ::width ::height ::edge-labels?]))
+                                 ::categories ::explanation ::render]))
 
 ;; Forward declaration for inheritance validation (defined later in file)
 (declare validate-inheritance)

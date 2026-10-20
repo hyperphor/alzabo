@@ -113,9 +113,7 @@
   (let [output-dir (u/tx "resources/public/schema/{{sname}}/")
         base (ju/wd)
         config {:source schema-file
-                :output-path output-dir
-                :edge-labels? true
-                }]
+                :output-path output-dir}]
     (config/set-config! config)
     (do-command :documentation {:schema-file schema-file})
     (ju/open-url (u/tx "file://{{base}}/{{output-dir}}index.html"))))

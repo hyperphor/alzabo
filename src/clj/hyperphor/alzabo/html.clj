@@ -15,15 +15,19 @@
 ;;; itself (with these as fallback defaults) since they're presentation
 ;;; details of a particular schema, not deployment config.
 (def default-graph-options
-  {:edge-labels? :minimal
-   :width 100
-   :height 64
-   :orientation :vertical
-   :categories {:default {:color "#a9cce3"}}})
+  {:categories {:default {:color "#a9cce3"}}
+   :render {:edge-labels? :minimal
+            ;; :width 100
+            ;; :height 64
+            :orientation :vertical
+            ;; Raw Graphviz attributes, emitted as graph/node/edge default statements
+            :graph-attrs {}
+            :node-attrs {:shape "box" :style "rounded,filled" :fontname "Helvetica"}
+            :edge-attrs {:fontname "Helvetica"}}})
 
 (defn- with-graph-defaults
   [schema]
-  (merge default-graph-options schema))
+  (u/merge* default-graph-options schema))
 
 ;;; Bound to the schema for the duration of schema->html, so deeply-nested
 ;;; renderers (field type links, index tables, etc) can look up a kind's
@@ -334,17 +338,15 @@
 ;;; Requires installation of graphviz ('brew install graphviz' on Mac)
 (def dot-command "dot")
 
-(def graph-font "Helvetica")
-
-;;; TODO if this gets any more complex, consider replacing with https://github.com/daveray/dorothy
 (defn- write-graphviz
   [schema dot-file]
-  (let [{:keys [kinds enums categories orientation width height edge-labels?]} (with-graph-defaults schema)
+  (let [{:keys [kinds enums categories render]} (with-graph-defaults schema)
+        {:keys [orientation width height edge-labels? graph-attrs node-attrs edge-attrs]} render
         clean (fn [kind] (s/replace (name kind) \- \_))
         attributes
         (fn [m & [sep]]
           ;; For some reason graph attributes need a different separator
-          (s/join (or sep ",") (map (fn [[k v]] (format "%s=%s" (name k) (pr-str v))) m)))]
+          (s/join (or sep ",") (map (fn [[k v]] (format "%s=%s" (name k) (pr-str (if (keyword? v) (name v) v)))) m)))]
     (println "Writing " dot-file)
     (with-open [wrtr (clojure.java.io/writer dot-file)]
       (binding [*out* wrtr]
@@ -356,30 +358,32 @@
                    :size (str height "," width)
                    }
                   ";"))
+        (doseq [[stmt attrs] [["graph" graph-attrs] ["node" node-attrs] ["edge" edge-attrs]]]
+          (when (seq attrs)
+            (println (format "%s [%s];" stmt (attributes attrs)))))
         (doseq [kind (keys kinds)]
-          (let [{:keys [doc category icon] :or {category :default}} (get-in schema [:kinds kind])]
+          (let [{:keys [doc category icon] :as kind-def :or {category :default}} (get kinds kind)]
             (println (format "%s [%s];"
                              (clean kind)
-                             (attributes {:URL (kind-url kind)
-                                          :label (if icon (str icon " " (name kind)) (name kind))
-                                          :tooltip (or doc (name kind))
-                                          :style "filled"
-                                          :fillcolor (get-in categories [category :color])
-                                          :fontname graph-font}))))
+                             (attributes (merge {:URL (kind-url kind)
+                                                 :label (if icon (str icon " " (name kind)) (name kind))
+                                                 :tooltip (or doc (name kind))
+                                                 :fillcolor (get-in categories [category :color])}
+                                                (get-in categories [category :node-attrs])
+                                                (:node-attrs kind-def))))))
           (doseq [[label ref cardinality] (kind-relations kind schema)]
             (println (format "%s -> %s [%s];"
                              (clean kind)
                              (clean ref)
                              (attributes
                               (merge
-                               {:arrowhead (if (= cardinality :many) "diamond" "normal")} ;"crow" is better semantically but looks bad on ovals.
+                               {:arrowhead (if (= cardinality :many) "crow" "normal")}
                                (if (case edge-labels?
                                      :minimal (not (or (= label ref)
                                                        (= (name label) (inflect/plural ref))))
                                      true true
                                      :else false)
-                                 {:fontname graph-font
-                                  :label (name label)})))
+                                 {:label (name label)})))
                              )))
         ;; Add inheritance edges with dashed lines (child -> parent)
           (doseq [parent (schema/get-parents schema kind)]
