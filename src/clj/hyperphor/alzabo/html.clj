@@ -22,8 +22,10 @@
             :orientation :vertical
             ;; Raw Graphviz attributes, emitted as graph/node/edge default statements
             :graph-attrs {}
-            :node-attrs {:shape "box" :style "rounded,filled" :fontname "Helvetica"}
-            :edge-attrs {:fontname "Helvetica"}}})
+            ;; Short boxes also shrink the corner radius, which Graphviz doesn't expose directly
+            :node-attrs {:shape "box" :style "rounded,filled" :fontname "Helvetica" :fontsize 12
+                         :height 0.3 :margin "0.06,0.02"}
+            :edge-attrs {:fontname "Helvetica-Oblique" :fontsize 11 :fontcolor "#444444"}}})
 
 (defn- with-graph-defaults
   [schema]
@@ -352,11 +354,11 @@
       (binding [*out* wrtr]
         (println "digraph schema {")
         (println (attributes
-                  {:rankdir (case orientation
-                              :horizontal "LR"
-                              :vertical "TB")
-                   :size (str height "," width)
-                   }
+                  (merge {:rankdir (case orientation
+                                     :horizontal "LR"
+                                     :vertical "TB")}
+                         (when (and height width)
+                           {:size (str height "," width)}))
                   ";"))
         (doseq [[stmt attrs] [["graph" graph-attrs] ["node" node-attrs] ["edge" edge-attrs]]]
           (when (seq attrs)
@@ -383,7 +385,8 @@
                                                        (= (name label) (inflect/plural ref))))
                                      true true
                                      :else false)
-                                 {:label (name label)})))
+                                 ;; Leading space keeps the label off its edge; dot has no edge label margin
+                                 {:label (str " " (name label))})))
                              )))
         ;; Add inheritance edges with dashed lines (child -> parent)
           (doseq [parent (schema/get-parents schema kind)]
