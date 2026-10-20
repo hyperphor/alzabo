@@ -18,7 +18,7 @@
   {:edge-labels? :minimal
    :width 100
    :height 64
-   :orientation :horizontal
+   :orientation :vertical
    :categories {:default {:color "#a9cce3"}}})
 
 (defn- with-graph-defaults

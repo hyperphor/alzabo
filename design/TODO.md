@@ -1,4 +1,22 @@
+# TODO steal BK layout
+
+# Turtle input
+bible-ontology.ttl as sample, looks about right size
+
 Hyperphor era TODO
+
+# alternatices to graphivz
+https://mermaid.ai
+
+
+
+# IDEA jev-based API for regularizing a spreadheet (eg) to an ontology
+
+It might not belong here (ontogeny is a better fit)
+
+But fuck it, I'm starting to realize ellum and alzabo should be combined, the value-add is how these things work
+together. Elzabo! Well that is very clever, zero people will get that!
+
 
 # FIXED (pending review) BUG search on AACT is broken
 "purp" returns nothing although their are docstrings and entities that should match: designs.primary_purpose
