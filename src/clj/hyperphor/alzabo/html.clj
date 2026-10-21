@@ -1,12 +1,12 @@
 (ns hyperphor.alzabo.html
   (:require [hyperphor.alzabo.schema :as schema]
             [hyperphor.multitool.core :as u]
+            [hyperphor.multitool.graph :as graph]
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [me.raynes.fs :as fs]
             [inflections.core :as inflect]
-            [clojure.java.io :as io]
-            [clojure.java.shell :as shell])
+            [clojure.java.io :as io])
   (:import [java.nio.file Files Path LinkOption]
            [java.nio.file.attribute FileAttribute])
   (:use [hiccup.core]))
@@ -20,12 +20,8 @@
             ;; :width 100
             ;; :height 64
             :orientation :vertical
-            ;; Raw Graphviz attributes, emitted as graph/node/edge default statements
-            :graph-attrs {}
-            ;; Short boxes also shrink the corner radius, which Graphviz doesn't expose directly
-            :node-attrs {:shape "box" :style "rounded,filled" :fontname "Helvetica" :fontsize 12
-                         :height 0.3 :margin "0.06,0.02"}
-            :edge-attrs {:fontname "Helvetica-Oblique" :fontsize 11 :fontcolor "#444444"}}})
+            ;; :graph-attrs, :node-attrs, :edge-attrs are merged over hyperphor.multitool.graph/default-attrs
+            }})
 
 (defn- with-graph-defaults
   [schema]
@@ -260,10 +256,23 @@
        body]))
   
 
+(defn- category-legend
+  "Color key for the graph: one swatch per category in `used`."
+  [categories used]
+  [:div.legend {:style (style-arg {:display "flex" :flex-wrap "wrap" :gap "12px" :margin "8px 0"})}
+   (for [cat used
+         :let [{:keys [color label doc]} (get categories cat)]]
+     [:span {:title (or doc "") :style (style-arg {:display "inline-flex" :align-items "center" :gap "5px"})}
+      [:span {:style (style-arg {:display "inline-block" :width "14px" :height "14px"
+                                 :border "1px solid #888" :border-radius "3px" :background color})}]
+      (or label (inflect/titleize (name cat)))])])
+
 (defn- index->html
-  [{:keys [kinds enums version title categories explanation] :as schema} tag-version output-path]
-  (let [categories (or categories (:categories default-graph-options)) ;TODO kludge
-        groups (group-by #(get % :category :default) (vals (u/self-label :id kinds)))]
+  [{:keys [kinds enums version title explanation] :as schema} tag-version output-path]
+  (let [categories (:categories (with-graph-defaults schema))
+        groups (group-by #(get % :category :default) (vals (u/self-label :id kinds)))
+        ;; Categories that actually have kinds, in declared order
+        used (filter groups (keys categories))]
     (html
         [:div.container                 ;TODO use page-html
          [:div.header
@@ -275,6 +284,8 @@
            )
          [:div.row
           [:div.py-5
+           (when (> (count used) 1)
+             (category-legend categories used))
            [:img {:src "schema.dot.svg"
                   :usemap "#schema"}]
            (slurp (output-file output-path "schema.dot.cmapx"))
@@ -282,11 +293,11 @@
          [:div.row
           [:div.m-2
            [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
-           (for [category-name (keys categories)]
+           (for [category-name used]
              (let [kinds (category-name groups)
                    category (category-name categories)]
                [:div
-                (when (> (count categories) 1)
+                (when (> (count used) 1)
                   [:h3 {:style (header-style (:color category))}
                    (or (:label category)
                        (inflect/titleize category-name))])
@@ -330,85 +341,66 @@
                       (list [fname type cardinality])))
                   (get-in kinds [kind :fields]))))
 
-(defn- sh-errchecked
-  [& args]
-  (let [res (apply shell/sh args)]
-    (when-not (= (:exit res) 0)
-      (throw (Exception. (str "Bad result from shell" res))))
-    res))
+(defn- edge-label?
+  [edge-labels? label ref]
+  (case edge-labels?
+    :minimal (not (or (= label ref)
+                      (= (name label) (inflect/plural ref))))
+    true true
+    false))
 
-;;; Requires installation of graphviz ('brew install graphviz' on Mac)
-(def dot-command "dot")
-
-(defn- write-graphviz
-  [schema dot-file]
-  (let [{:keys [kinds enums categories render]} (with-graph-defaults schema)
+(defn- graph-spec
+  "Build a hyperphor.multitool.graph spec (default attrs plus node and edge lists) for `schema`."
+  [schema]
+  (let [{:keys [kinds categories render]} (with-graph-defaults schema)
         {:keys [orientation width height edge-labels? graph-attrs node-attrs edge-attrs]} render
-        clean (fn [kind] (s/replace (name kind) \- \_))
-        attributes
-        (fn [m & [sep]]
-          ;; For some reason graph attributes need a different separator
-          (s/join (or sep ",") (map (fn [[k v]] (format "%s=%s" (name k) (pr-str (if (keyword? v) (name v) v)))) m)))]
-    (println "Writing " dot-file)
-    (with-open [wrtr (clojure.java.io/writer dot-file)]
-      (binding [*out* wrtr]
-        (println "digraph schema {")
-        (println (attributes
-                  (merge {:rankdir (case orientation
+        clean (fn [kind] (s/replace (name kind) \- \_))]
+    {:name "schema"                     ;names the cmapx <map>, see index->html's :usemap
+     :graph-attrs (merge {:rankdir (case orientation
                                      :horizontal "LR"
                                      :vertical "TB")}
                          (when (and height width)
-                           {:size (str height "," width)}))
-                  ";"))
-        (doseq [[stmt attrs] [["graph" graph-attrs] ["node" node-attrs] ["edge" edge-attrs]]]
-          (when (seq attrs)
-            (println (format "%s [%s];" stmt (attributes attrs)))))
-        (doseq [kind (keys kinds)]
-          (let [{:keys [doc category icon] :as kind-def :or {category :default}} (get kinds kind)]
-            (println (format "%s [%s];"
-                             (clean kind)
-                             (attributes (merge {:URL (kind-url kind)
-                                                 :label (if icon (str icon " " (name kind)) (name kind))
-                                                 :tooltip (or doc (name kind))
-                                                 :fillcolor (get-in categories [category :color])}
-                                                (get-in categories [category :node-attrs])
-                                                (:node-attrs kind-def))))))
-          (doseq [[label ref cardinality] (kind-relations kind schema)]
-            (println (format "%s -> %s [%s];"
-                             (clean kind)
-                             (clean ref)
-                             (attributes
-                              (merge
-                               {:arrowhead (if (= cardinality :many) "crow" "normal")}
-                               (if (case edge-labels?
-                                     :minimal (not (or (= label ref)
-                                                       (= (name label) (inflect/plural ref))))
-                                     true true
-                                     :else false)
-                                 ;; Leading space keeps the label off its edge; dot has no edge label margin
-                                 {:label (str " " (name label))})))
-                             )))
-        ;; Add inheritance edges with dashed lines (child -> parent)
-          (doseq [parent (schema/get-parents schema kind)]
-            (println (format "%s -> %s [%s];"
-                             (clean kind) ;TODO might want to swap these
-                             (clean parent)
-                             (attributes {:style "dashed"
-                                          :arrowhead "empty"
-                                          :color "#4CAF50"
-                                          :penwidth "2.0"})))))
+                           {:size (str height "," width)})
+                         graph-attrs)
+     :node-attrs node-attrs
+     :edge-attrs edge-attrs
+     :nodes (for [[kind {:keys [doc category icon] :as kind-def :or {category :default}}] kinds]
+              [(clean kind)
+               (merge {:URL (kind-url kind)
+                       :label (if icon (str icon " " (name kind)) (name kind))
+                       :tooltip (or doc (name kind))
+                       :fillcolor (get-in categories [category :color])}
+                      (get-in categories [category :node-attrs])
+                      (:node-attrs kind-def))])
+     :edges (concat
+             (for [kind (keys kinds)
+                   [label ref cardinality] (kind-relations kind schema)]
+               [(clean kind)
+                (clean ref)
+                (merge {:arrowhead (if (= cardinality :many) "crow" "normal")}
+                       (when (edge-label? edge-labels? label ref)
+                         ;; Leading space keeps the label off its edge; dot has no edge label margin
+                         {:label (str " " (name label))}))])
+             ;; Inheritance edges, dashed (child -> parent)
+             (for [kind (keys kinds)
+                   parent (schema/get-parents schema kind)]
+               [(clean kind)
+                (clean parent)
+                {:style "dashed"
+                 :arrowhead "empty"
+                 :color "#4CAF50"
+                 :penwidth "2.0"}]))}))
 
-        (println "}"))
-      (println "Generating .svg")
-      (sh-errchecked
-       dot-command
-       dot-file
-       "-Tsvg"
-       "-O"
-       "-Tcmapx"
-       "-O"
-       )
-      )))
+;;; Requires installation of graphviz ('brew install graphviz' on Mac)
+(defn- write-graphviz
+  "Write `dot-file` for `schema`, plus <dot-file>.svg and <dot-file>.cmapx."
+  [schema dot-file]
+  (let [dot (graph/spec->dot (graph-spec schema))]
+    (println "Writing " dot-file)
+    (spit dot-file dot)
+    (println "Generating .svg")
+    (spit (str dot-file ".svg") (graph/dot->format dot "svg"))
+    (spit (str dot-file ".cmapx") (graph/dot->format dot "cmapx"))))
 
 ;;; the fs/ symlink command won't do the right thing
 (defn- make-link

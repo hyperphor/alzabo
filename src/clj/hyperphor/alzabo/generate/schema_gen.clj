@@ -200,29 +200,50 @@ Return ONLY a Clojure map from kind keyword to a single emoji character string, 
 
 ;;; Categories
 
-;;; TODO parameterize #
-(defn- add-categories
-  [domain schema provider model]
-  (let [kinds (:kinds schema)
-        query (u/tx "Given this list of entity kinds (kind name to short description) for a {{domain}} domain Alzabo schema, come up with a list of 2-5 categories that the kinds should slot into (eg: ['physical', 'behaviroal', 'economic'...])
+;;; Pastel fills, legible under dark node text; assigned in order of the LLM's category list
+(def category-palette
+  ["#a9cce3" "#f5cba7" "#abebc6" "#f9e79f" "#d7bde2" "#f5b7b1" "#a3e4d7" "#d5dbdb"])
 
-Return [categories, kinds], where categoris is a list of categories with description, and kinds is a map of kinds to categoories")
-
+(defn- propose-categories
+  "Ask the LLM for {:categories {cat {:label :doc}} :assignments {kind cat}} covering schema's kinds."
+  [domain schema n provider model]
+  (let [kinds (into {} (map (fn [[k v]] [k (:doc v)])) (:kinds schema))
+        query (u/tx "Given this list of entity kinds (kind name to short description) for a {{domain}} domain Alzabo schema, come up with {{n}} categories that the kinds slot into (eg: physical, behavioral, economic). Every kind should be assigned to exactly one category.
+Return ONLY a Clojure map of the form:
+{:categories {:category-keyword {:label \"Short Label\" :doc \"One-sentence description\"} ...}
+ :assignments {:KindName :category-keyword ...}}
+List categories in a sensible display order.")
         request (cond-> {:provider provider
                          :system system-prompt
                          :messages [{:role :user :content query}
                                     {:role :user :content (str "kinds: " (pr-str kinds))}]}
                   model (assoc :model model))
-        categories (-> (llm/complete request)
-                       :content
-                       extract-clojure-code)]
-    (clojure.pprint/pprint categories )
-    
-        
-    ))
+        result (-> (llm/complete request) :content extract-clojure-code)]
+    (if (and (map? (:categories result)) (map? (:assignments result)))
+      result
+      (throw (ex-info "propose-categories: LLM did not return a category map" {:result result})))))
 
-(def s (hyperphor.alzabo.schema/read-schema "resources/bioinformatics-schema.edn"))
-(add-categories "bioinformatics tools" s default-provider nil)
+(defn merge-categories
+  "Merge proposed {:categories :assignments} into schema, coloring categories from
+  category-palette. Kinds that already have a :category are left alone. Pure, no LLM call."
+  [schema {:keys [categories assignments]}]
+  (let [colored (into (array-map)
+                      (map (fn [[cat cdef] color] [cat (merge {:color color} cdef)])
+                           categories
+                           (cycle category-palette)))]
+    (reduce (fn [schema [kind cat]]
+              (if (and (contains? (:kinds schema) kind)
+                       (contains? colored cat)
+                       (not (get-in schema [:kinds kind :category])))
+                (assoc-in schema [:kinds kind :category] cat)
+                schema))
+            (update schema :categories #(merge colored %))
+            assignments)))
+
+(defn add-categories
+  "Propose 2-5 (or `:n`) categories for schema's kinds via LLM and merge them in, with colors."
+  [domain schema & {:keys [n provider model] :or {n "2-5" provider default-provider}}]
+  (merge-categories schema (propose-categories domain schema n provider model)))
 
 (defn sgen
   "Generate an Alzabo schema (a Clojure map, not written to disk) for
@@ -236,5 +257,5 @@ Return [categories, kinds], where categoris is a list of categories with descrip
   (let [kinds-map (generate-kinds domain extra provider model)
         schema (generate-schema-from-kinds domain kinds-map extra provider model)]
     ;; TODO add-icons probably should be optional
-    (add-icons domain schema extra provider model)))
+    (add-icons domain schema :provider provider :model model)))
 

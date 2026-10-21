@@ -6,7 +6,7 @@
             [hyperphor.alzabo.output :as output]
             [hyperphor.alzabo.export.datomic :as datomic]
             [hyperphor.alzabo.datagen :as datagen]
-            [hyperphor.alzabo.schema-gen-llm :as sgl]
+            [hyperphor.alzabo.generate.schema-gen :as sg]
             [hyperphor.multitool.core :as u]
             [hyperphor.multitool.cljcore :as ju]
             [me.raynes.fs :as fs]
@@ -121,7 +121,7 @@
 ;;; Generaste a schema from a domain description (and display it)
 (defn full-demo
   [domain & [extra]]
-  (let [schema (sgl/sgen domain extra)
+  (let [schema (sg/sgen domain :extra (or extra ""))
         schema-file (u/tx "resources/generated/{{domain}}.edn")]
     (output/write-schema schema schema-file)
     (demo schema-file domain))) 
