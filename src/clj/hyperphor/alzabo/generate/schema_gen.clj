@@ -149,8 +149,7 @@ Avoid spaces in keywords.
 ;;; Adds :icon to kinds where one is obviously fitting. Conservative: kinds already
 ;;; iconed are excluded from the prompt (never overwritten), and the model is asked
 ;;; to skip kinds with no good emoji rather than force one onto everything.
-;;; Ported from hyperphor.alzabo.schema-gen-llm/add-icons (alzabo repo). Unlike
-;;; add-doc/improve-doc, this asks the LLM for a small {kind icon} map, not the
+;;; Unlike add-doc/improve-doc, this asks the LLM for a small {kind icon} map, not the
 ;;; whole schema back, so there's nothing large for it to truncate with "..." --
 ;;; extract-clojure-code's fenced-or-bare handling is all that's needed here,
 ;;; no extra shape-normalization (the alzabo prototype did its own ad hoc
@@ -199,6 +198,32 @@ Return ONLY a Clojure map from kind keyword to a single emoji character string, 
   [domain schema & {:keys [provider model] :or {provider default-provider}}]
   (merge-icons schema (propose-icons domain schema provider model)))
 
+;;; Categories
+
+;;; TODO parameterize #
+(defn- add-categories
+  [domain schema provider model]
+  (let [kinds (:kinds schema)
+        query (u/tx "Given this list of entity kinds (kind name to short description) for a {{domain}} domain Alzabo schema, come up with a list of 2-5 categories that the kinds should slot into (eg: ['physical', 'behaviroal', 'economic'...])
+
+Return [categories, kinds], where categoris is a list of categories with description, and kinds is a map of kinds to categoories")
+
+        request (cond-> {:provider provider
+                         :system system-prompt
+                         :messages [{:role :user :content query}
+                                    {:role :user :content (str "kinds: " (pr-str kinds))}]}
+                  model (assoc :model model))
+        categories (-> (llm/complete request)
+                       :content
+                       extract-clojure-code)]
+    (clojure.pprint/pprint categories )
+    
+        
+    ))
+
+(def s (hyperphor.alzabo.schema/read-schema "resources/bioinformatics-schema.edn"))
+(add-categories "bioinformatics tools" s default-provider nil)
+
 (defn sgen
   "Generate an Alzabo schema (a Clojure map, not written to disk) for
   `domain`, a short domain-description string. `:extra` is optional
@@ -212,3 +237,4 @@ Return ONLY a Clojure map from kind keyword to a single emoji character string, 
         schema (generate-schema-from-kinds domain kinds-map extra provider model)]
     ;; TODO add-icons probably should be optional
     (add-icons domain schema extra provider model)))
+
