@@ -127,10 +127,14 @@ Avoid spaces in keywords.
         request (cond-> {:provider provider
                          :system system-prompt
                          :messages [{:role :user :content query}
-                                    {:role :user :content (str "schema: " (print-str schema))}]}
+                                    {:role :user :content (str "schema: " (print-str schema))}]
+                         :max-tokens 120000
+                         }
                   model (assoc :model model))]
-      (:content (llm/complete request))
-      ))
+    (-> (llm/complete request)
+        #_ :content
+        #_ extract-clojure-code
+    )))
 
 (defn improve-doc
   "Given an existing schema and a domain description, ask the LLM to rewrite
@@ -259,3 +263,22 @@ List categories in a sensible display order.")
     (cond-> schema
       icons? (as-> s (add-icons domain s :provider provider :model model))
       categories? (as-> s (add-categories domain s :provider provider :model model)))))
+
+(defn delete-keys
+  [map f]
+  "Delete from map any key for which (f key) is true"
+  (select-keys map (for [[k v] map :when (not (f k))] k)))
+
+(comment
+  (delete-keys {:aa 1 :b 2 :cc 3} #(= (count (name %)) 1)))
+
+(defn delete-keys-matching
+  [map regex]
+  (delete-keys map #(re-matches regex (name %))))
+
+(defn trim-fields
+  [schema]
+  (u/walk-keys
+   (fn [[k v]]
+     [k (delete-keys-matching v  #".*(__source|retrieved_at).*" )])
+   :fields schema))

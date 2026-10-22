@@ -1,5 +1,6 @@
 (ns hyperphor.alzabo.core
   (:require [hyperphor.alzabo.import.candel :as candel]
+            [hyperphor.alzabo.import.linkml :as linkml]
             [hyperphor.alzabo.schema :as schema]
             [hyperphor.alzabo.config :as config]
             [hyperphor.alzabo.html :as html]
@@ -26,7 +27,9 @@
 (defn- schema
   [schema-file]
   (let [schema-file (or schema-file (config/realize-path (config/config :source)))
-        schema (schema/read-schema schema-file)]
+        schema (if (re-find #"\.ya?ml$" (str schema-file))
+                 (linkml/linkml->alzabo schema-file)
+                 (schema/read-schema schema-file))]
     (config/set! :version (:version schema)) ;?
     schema))
 
@@ -39,9 +42,11 @@
   (schema)                              ;sets version
   (browse-file (config/output-path "index.html")))
 
+
+;; obs
 (defn write-alzabo
-  [schema]
-  (output/write-schema schema (config/output-path "alzabo-schema.edn"))) 
+  [schema ]
+  (output/write-schema schema (config/output-path "alzabo-schema.edn")))
 
 (defmethod do-command :documentation
   [_ {:keys [schema-file]}]
@@ -53,6 +58,14 @@
         (html/schema->html schema output-path))
       (let [schema (schema schema-file)]
         (html/schema->html schema output-path)))))
+
+(defmulti do-command-new (fn [command args] (keyword command)))
+
+(defmethod do-command-new :documentation
+  [_ [schema-input-path & args]]
+  (let [schema (schema/read-schema schema-input-path)
+        output-path (ju/temp-dir-path)]                ;TODO
+    (html/schema->html schema output-path)))
 
 (defmethod do-command :datomic
   [_ _]
@@ -105,6 +118,12 @@
 (defn main
   [config command & args]
   (main-guts config command)
+  )
+
+(defn main-new
+  [command & args]
+  (config/set-config! {})
+  (do-command-new command args)
   )
 
 ;;; Build and show schema doc

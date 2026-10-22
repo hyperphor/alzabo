@@ -195,6 +195,8 @@
      (for [[v doc] values]
        (html [:tr [:td v] [:td doc]]))]]))
 
+;;; This is extremely dangerous and I lost work because of it, so no, don't do this
+#_
 (defn- clear-directory
   [d]
   (fs/delete-dir d LinkOption/NOFOLLOW_LINKS)
@@ -414,7 +416,7 @@
   "Generate HTML docs for a schema, including .svg and related files, writing them to output-path."
   [{:keys [kinds enums version title] :as schema} output-path]
   (binding [*schema* schema]
-    (clear-directory output-path)
+    #_ (clear-directory output-path)
     ;; Write out the schema itself – used by autocomplete, enflame, etc
     (with-open [o (clojure.java.io/writer (output-file output-path "schema.edn"))]
       (pp/pprint schema o))
