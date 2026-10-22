@@ -250,12 +250,12 @@ List categories in a sensible display order.")
   `domain`, a short domain-description string. `:extra` is optional
   additional instruction text appended to both LLM calls; `:provider`
   defaults to :anthropic; `:model` defaults to the provider's default.
-  See hyperphor.alzabo.schema-gen-llm/sgen (alzabo repo), the prototype this
-  is ported from -- known gap carried over as-is: it doesn't generate
-  subtype/extends relations."
-  [domain & {:keys [extra provider model] :or {extra "" provider default-provider}}]
+  `:icons?` and `:categories?` (both default true) run add-icons / add-categories.
+  Known gap: doesn't generate subtype/extends relations."
+  [domain & {:keys [extra provider model icons? categories?]
+             :or {extra "" provider default-provider icons? true categories? true}}]
   (let [kinds-map (generate-kinds domain extra provider model)
         schema (generate-schema-from-kinds domain kinds-map extra provider model)]
-    ;; TODO add-icons probably should be optional
-    (add-icons domain schema :provider provider :model model)))
-
+    (cond-> schema
+      icons? (as-> s (add-icons domain s :provider provider :model model))
+      categories? (as-> s (add-categories domain s :provider provider :model model)))))
