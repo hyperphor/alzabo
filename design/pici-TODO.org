@@ -24,6 +24,7 @@ kind of have this but needs a UI for demo
 ** Schema index, deployment
 ** search widget should be on all pages
 ** package as webapp so I don't have to give demos
+Proposal (pending review): design/alzabo-package-webapp.md
 
 
 * for tomorrows Lisp lighting talk
