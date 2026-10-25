@@ -56,5 +56,9 @@
     rdfs:domain :Person ;
     rdfs:range foaf:Document .
 
+:knows a owl:ObjectProperty ;
+    rdfs:domain :Person ;
+    rdfs:range foaf:Person .
+
 :orphan a rdf:Property ;
     rdfs:range xsd:string .

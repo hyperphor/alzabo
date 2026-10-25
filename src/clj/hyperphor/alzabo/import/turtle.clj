@@ -72,11 +72,10 @@
    {"boolean" :boolean}))
 
 (defn- range-type
-  [^Resource r class-keys]
-  (let [uri (.getURI r)]
-    (cond (.startsWith uri XSD/NS) (get xsd-primitives (local-name r) :string)
-          (contains? class-keys (->key r)) (->key r)
-          :else :string)))
+  [^Resource r class-set]
+  (cond (.startsWith (.getURI r) XSD/NS) (get xsd-primitives (local-name r) :string)
+        (contains? class-set r) (->key r)
+        :else :string))
 
 (defn- classes
   [model]
@@ -93,11 +92,12 @@
        distinct))
 
 (defn- property-field
-  [model ^Resource prop class-keys]
+  [model ^Resource prop class-set]
   (let [ranges (named (expand-unions model (objects model prop RDFS/range)))
-        types (map #(range-type % class-keys) ranges)
         ;; Prefer a kind reference over a primitive when there are multiple ranges
-        type (or (first (filter class-keys types)) (first types) :string)
+        type (or (some #(when (contains? class-set %) (->key %)) ranges)
+                 (some-> (first ranges) (range-type class-set))
+                 :string)
         functional? (.contains ^Model model prop RDF/type ^RDFNode OWL/FunctionalProperty)]
     (cond-> {:type type
              :cardinality (if functional? :one :many)}
@@ -111,14 +111,16 @@
   "Convert a Jena Model holding an RDFS/OWL ontology into an Alzabo schema map."
   [^Model model]
   (let [classes (classes model)
-        class-keys (set (map ->key classes))
+        class-set (set classes)         ;Jena Resources compare by URI
+        _ (doseq [[k cs] (group-by ->key classes) :when (> (count cs) 1)]
+            (prn :local-name-collision k (map #(.getURI ^Resource %) cs)))
         kinds (into {}
                     (for [c classes
                           :let [k (->key c)
                                 parents (->> (objects model c RDFS/subClassOf)
                                              named
+                                             (filter class-set)
                                              (map ->key)
-                                             (filter class-keys)
                                              (remove #{k})
                                              distinct
                                              vec)]]
@@ -126,12 +128,12 @@
                            (doc model c) (assoc :doc (doc model c))
                            (seq parents) (assoc :extends (if (= 1 (count parents)) (first parents) parents)))]))
         kinds (reduce (fn [kinds prop]
-                        (let [field (property-field model prop class-keys)
+                        (let [field (property-field model prop class-set)
                               domains (->> (objects model prop RDFS/domain)
                                            (expand-unions model)
                                            named
+                                           (filter class-set)
                                            (map ->key)
-                                           (filter class-keys)
                                            distinct)]
                           (reduce #(assoc-in %1 [%2 :fields (->key prop)] field) kinds domains)))
                       kinds

@@ -29,7 +29,8 @@
       (is (= :Book (:type (field :Person :mentionedIn))))
       (is (= :Book (:type (field :Place :mentionedIn)))))
     (testing "range outside the ontology falls back to :string"
-      (is (= :string (:type (field :Person :homepage)))))
+      (is (= :string (:type (field :Person :homepage))))
+      (is (= :string (:type (field :Person :knows)))))
     (testing "property without domain is dropped"
       (is (not-any? #(contains? (:fields %) :orphan) (vals (:kinds schema)))))))
 
