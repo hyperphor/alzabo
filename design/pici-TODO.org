@@ -10,6 +10,7 @@
 * Possible extensins
 
 ** Extend to subtypes!
+PROPOSAL (pending review): see design/alzabo-subtypes.md (branch todo/alzabo-subtypes)
 ** synthetic instance generation
 kind of have this but needs a UI for demo
    so should be a separate app from alzabo, which is a pain.
@@ -43,6 +44,7 @@ Pared-down Radiohead maybe. No Jazz is good.
 ** TODO breakout ui into separate project
 
 ** Subtypes
+PROPOSAL (pending review): see design/alzabo-subtypes.md (branch todo/alzabo-subtypes)
 ** Generativity
 in progress
 *** linked objects, saving to db
