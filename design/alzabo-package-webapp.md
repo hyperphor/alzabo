@@ -121,6 +121,18 @@ LLM-written text that is steered by user input. Four issues:
      needn't share the generation lock, and a quick paste-and-render won't queue
      behind a 3-minute generation.
    - Keep `clear-directory` pointed only at fresh per-slug dirs.
+   - There's a second reason to bypass the command layer. The live copy's
+     *uncommitted* `core.clj` edit makes `do-command-new :documentation` call
+     `browse-file` (`java.awt.Desktop`), which would throw on a headless dyno
+     **[inspected]**. Server code should never go through CLI commands.
+
+**Sequencing with uncommitted work.** The live copy has uncommitted `html.clj` edits
+(xlabels, clusters, category-sorted nodes) on top of `use-multitool-graph`. The hiccup2
+switch touches every `html` call in that file, so it should land only after those edits
+are committed. It should be done as the existing `alzabo-hiccup2` task, using the
+`<script>`-in-`:doc` test (§6) as its acceptance check. A mechanical API swap can fail
+in either direction: it can escape linkify's anchors, which breaks the links, or wrap
+whole docs in `raw`, which keeps the XSS.
 
 ## 5. Recommendation
 
