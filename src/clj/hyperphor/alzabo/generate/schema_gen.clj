@@ -280,5 +280,6 @@ List categories in a sensible display order.")
   [schema]
   (u/walk-keys
    (fn [[k v]]
-     [k (delete-keys-matching v  #".*(__source|retrieved_at).*" )])
+     [k (delete-keys-matching v #".*(__source|retrieved_at).*" )])
    :fields schema))
+

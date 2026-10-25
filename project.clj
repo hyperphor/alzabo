@@ -1,4 +1,4 @@
-(defproject com.hyperphor/alzabo "1.4.0"
+(defproject com.hyperphor/alzabo "2.0.0"
   :description "Semantic schema format and tools, for Datomic and other uses."
   :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"

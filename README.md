@@ -1,8 +1,10 @@
 # alzabo
 
-A schema management and documentation tool for graph-shaped knowledge sources. [Example](https://hyperphor.github.io/alzabo/). 
+A schema management and documentation tool for graph-shaped knowledge sources.
 
-![Alzabo](resources/public/screenshot.png)
+[Example](https://hyperphor.github.io/alzabo/): documentation for an LLM-generated jazz schema ([source](resources/jazz-generated-schema.edn)), with icons and color-coded categories.
+
+[![Alzabo](resources/public/screenshot.png)](https://hyperphor.github.io/alzabo/)
 
 Alzabo defines a a simple schema format for graph databases or other storage formats. It's semantically close to RDF.
 
@@ -15,6 +17,7 @@ Import:
 - Tool to convert the [CANDEL schema](https://github.com/candelbio/pret/tree/master/resources/schema) into Alzabo schema
 - Tool to convert OpenAPI YAML format into Alzabo schemas
 - Tool to convert GraphQL format into Alzabo schema
+- Tool to convert [LinkML](https://linkml.io/) YAML schemas (following local imports) into Alzabo schemas
 
 Export:
 - Tool to generate Datomic schemas from Alzabo format
@@ -92,12 +95,13 @@ Add dependency `[hyperphor/alzabo <version>]
 
 ## Schema Generation
 
-Alzabo can generate a complete domain ontology for you using an LLM.:
+Alzabo can generate a complete domain ontology for you using an LLM, including icons and color-coded categories:
 
-
-    export OPENAI_API_KEY=<your OpenAI key>
+    export ANTHROPIC_API_KEY=<your key>
     lein repl
-    (full-demo "model rocketry" "rockets")  ; or use your favorint doamin
+    (full-demo "model rocketry")  ; or use your favorite domain
+
+`hyperphor.alzabo.generate.schema-gen/sgen` returns the schema without writing it; `:icons?` and `:categories?` (both default true) control the extra passes.
 
 
 
