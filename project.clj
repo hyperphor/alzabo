@@ -46,7 +46,9 @@
                       ]}
   :main hyperphor.alzabo.core
   :target-path "target/%s"
-  :profiles {:library {:prep-tasks ["compile" ["cljsbuild" "once"]]
+  :profiles {;; Jena is only needed by import.turtle; provided so library consumers don't inherit it
+             :provided {:dependencies [[org.apache.jena/jena-arq "3.16.0"]]}
+             :library {:prep-tasks ["compile" ["cljsbuild" "once"]]
                        }
              :uberjar {;; :aot :all
                        :prep-tasks ["compile" ["cljsbuild" "once" "uberjar"]]

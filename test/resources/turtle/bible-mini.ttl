@@ -1,0 +1,60 @@
+# Hand-written stand-in for bible-ontology.ttl, exercising the Turtle importer.
+@prefix :     <http://example.org/bible#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+<http://example.org/bible> a owl:Ontology ;
+    rdfs:label "Bible mini ontology" .
+
+:Thing a owl:Class ;
+    rdfs:label "Thing" .
+
+:Person a owl:Class ;
+    rdfs:subClassOf :Thing , foaf:Person ;
+    rdfs:comment "A person mentioned in the text." .
+
+:Prophet a owl:Class ;
+    rdfs:subClassOf :Person .
+
+:Place a owl:Class ;
+    rdfs:subClassOf :Thing .
+
+:Event a owl:Class ;
+    rdfs:subClassOf :Thing .
+
+:Book a rdfs:Class .
+
+:name a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain :Thing ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Primary name." .
+
+:age a owl:DatatypeProperty , owl:FunctionalProperty ;
+    rdfs:domain :Person ;
+    rdfs:range xsd:integer .
+
+:latitude a owl:DatatypeProperty ;
+    rdfs:domain :Place ;
+    rdfs:range xsd:decimal .
+
+:father a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain :Person ;
+    rdfs:range :Person .
+
+:participant a owl:ObjectProperty ;
+    rdfs:domain :Event ;
+    rdfs:range :Person .
+
+:mentionedIn a owl:ObjectProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( :Person :Place ) ] ;
+    rdfs:range :Book .
+
+:homepage a owl:ObjectProperty ;
+    rdfs:domain :Person ;
+    rdfs:range foaf:Document .
+
+:orphan a rdf:Property ;
+    rdfs:range xsd:string .

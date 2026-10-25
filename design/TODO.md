@@ -1,6 +1,8 @@
 # TODO steal BK layout
 
-# Turtle input
+# DONE (pending review) Turtle input
+Added import/turtle.clj (ttl->schema, convert) via Jena (:provided dep); test fixture test/resources/turtle/bible-mini.ttl.
+bible-ontology.ttl was not found anywhere on this machine; hand-written mini Bible ontology used instead.
 bible-ontology.ttl as sample, looks about right size
 
 Hyperphor era TODO
