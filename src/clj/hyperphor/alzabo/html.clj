@@ -17,10 +17,14 @@
 (def default-graph-options
   {:categories {:default {:color "#a9cce3"}}
    :render {:edge-labels? :minimal
-            ;; :width 100
-            ;; :height 64
+            ;; :width / :height: max graph size in pixels (scales down only)
             :orientation :vertical
+            ;; Edge labels as xlabels, placed after layout; regular labels become layout nodes and spread the graph sideways
+            :xlabels? true
             ;; :graph-attrs, :node-attrs, :edge-attrs are merged over hyperphor.multitool.graph/default-attrs
+            :graph-attrs {:nodesep 0.15 :ranksep 0.6}
+            ;; Group each category's kinds into a labeled Graphviz cluster (needs 2+ categories in use)
+            :clusters? false
             }})
 
 (defn- with-graph-defaults
@@ -343,30 +347,54 @@
                       (list [fname type cardinality])))
                   (get-in kinds [kind :fields]))))
 
+
+(defn omit-label?
+  [label ref]
+  (s/includes? (s/lower-case (name ref))
+               (s/lower-case (name label))))
+
+
 (defn- edge-label?
   [edge-labels? label ref]
   (case edge-labels?
-    :minimal (not (or (= label ref)
+    :minimal (omit-label? label ref) #_(not (or (= label ref)
                       (= (name label) (inflect/plural ref))))
     true true
     false))
+
+;;; Graphviz size is inches, width first, and only shrinks (keeping aspect ratio).
+;;; Browsers show dot's SVG at 96px/in, which is also the cmapx coordinate scale.
+(defn- graph-size
+  "Graphviz size attr for a maximum `width`/`height` in pixels; either may be nil."
+  [width height]
+  (let [in #(if % (/ % 96.0) 10000)]
+    (str (in width) "," (in height))))
+
+;;; dot seeds within-rank order from input order, so this tends to put same-category kinds near each other
+(defn- category-sorted
+  "`kinds` entries sorted by their category's position in `categories`, then by name."
+  [kinds categories]
+  (let [pos (zipmap (keys categories) (range))]
+    (sort-by (fn [[kind {:keys [category] :or {category :default}}]]
+               [(get pos category Integer/MAX_VALUE) (name kind)])
+             kinds)))
 
 (defn- graph-spec
   "Build a hyperphor.multitool.graph spec (default attrs plus node and edge lists) for `schema`."
   [schema]
   (let [{:keys [kinds categories render]} (with-graph-defaults schema)
-        {:keys [orientation width height edge-labels? graph-attrs node-attrs edge-attrs]} render
+        {:keys [orientation width height edge-labels? xlabels? graph-attrs node-attrs edge-attrs]} render
         clean (fn [kind] (s/replace (name kind) \- \_))]
     {:name "schema"                     ;names the cmapx <map>, see index->html's :usemap
      :graph-attrs (merge {:rankdir (case orientation
                                      :horizontal "LR"
                                      :vertical "TB")}
-                         (when (and height width)
-                           {:size (str height "," width)})
+                         (when (or width height)
+                           {:size (graph-size width height)})
                          graph-attrs)
      :node-attrs node-attrs
      :edge-attrs edge-attrs
-     :nodes (for [[kind {:keys [doc category icon] :as kind-def :or {category :default}}] kinds]
+     :nodes (for [[kind {:keys [doc category icon] :as kind-def :or {category :default}}] (category-sorted kinds categories)]
               [(clean kind)
                (merge {:URL (kind-url kind)
                        :label (if icon (str icon " " (name kind)) (name kind))
@@ -382,7 +410,7 @@
                 (merge {:arrowhead (if (= cardinality :many) "crow" "normal")}
                        (when (edge-label? edge-labels? label ref)
                          ;; Leading space keeps the label off its edge; dot has no edge label margin
-                         {:label (str " " (name label))}))])
+                         {(if xlabels? :xlabel :label) (str " " (name label))}))])
              ;; Inheritance edges, dashed (child -> parent)
              (for [kind (keys kinds)
                    parent (schema/get-parents schema kind)]
@@ -393,11 +421,58 @@
                  :color "#4CAF50"
                  :penwidth "2.0"}]))}))
 
+(defn- dot-attrs
+  [m]
+  (s/join "," (for [[k v] m :when (some? v)]
+                (format "%s=%s" (name k) (pr-str (if (keyword? v) (name v) (str v)))))))
+
+;;; Translucent tint of a #rrggbb category color for the cluster background; other color forms get no fill
+(defn- cluster-fill
+  [color]
+  (when (and (string? color) (re-matches #"#[0-9a-fA-F]{6}" color))
+    (str color "40")))
+
+(defn- cluster-specs
+  "[[cluster-id attrs node-ids]...], one per category in use, if :clusters? and 2+ categories are used.
+  Uncategorized kinds stay outside any cluster."
+  [schema]
+  (let [{:keys [kinds categories render]} (with-graph-defaults schema)
+        groups (group-by (fn [[_ kdef]] (:category kdef)) kinds)
+        used (filter #(and (not= % :default) (get groups %)) (keys categories))]
+    (when (and (:clusters? render) (> (count used) 1))
+      (for [cat used
+            :let [{:keys [color label cluster-attrs]} (get categories cat)]]
+        [(str "cluster_" (name cat))
+         (merge {:label (or label (inflect/titleize (name cat)))
+                 :style "rounded,filled"
+                 :color color
+                 :fillcolor (or (cluster-fill color) "white")
+                 :penwidth 1.5
+                 :fontname "Helvetica-Bold"
+                 :fontsize 13
+                 :labeljust "l"}
+                cluster-attrs)
+         (map (fn [[kind _]] (s/replace (name kind) \- \_)) (get groups cat))]))))
+
+;;; multitool's spec->dot has no subgraphs; a node mentioned in a cluster joins it even if declared earlier
+(defn- add-clusters
+  "Splice `clusters` (as from cluster-specs) into `dot` source as subgraph statements."
+  [dot clusters]
+  (if (empty? clusters)
+    dot
+    (let [close (s/last-index-of dot "}")]
+      (str (subs dot 0 close)
+           (s/join (for [[id attrs nodes] clusters]
+                     (format "subgraph %s {\ngraph [%s];\n%s\n}\n"
+                             (pr-str id) (dot-attrs attrs)
+                             (s/join " " (map #(str (pr-str %) ";") nodes)))))
+           (subs dot close)))))
+
 ;;; Requires installation of graphviz ('brew install graphviz' on Mac)
 (defn- write-graphviz
   "Write `dot-file` for `schema`, plus <dot-file>.svg and <dot-file>.cmapx."
   [schema dot-file]
-  (let [dot (graph/spec->dot (graph-spec schema))]
+  (let [dot (add-clusters (graph/spec->dot (graph-spec schema)) (cluster-specs schema))]
     (println "Writing " dot-file)
     (spit dot-file dot)
     (println "Generating .svg")
@@ -417,6 +492,7 @@
   [{:keys [kinds enums version title] :as schema} output-path]
   (binding [*schema* schema]
     #_ (clear-directory output-path)
+    (fs/mkdirs output-path)
     ;; Write out the schema itself – used by autocomplete, enflame, etc
     (with-open [o (clojure.java.io/writer (output-file output-path "schema.edn"))]
       (pp/pprint schema o))

@@ -214,6 +214,17 @@
   [p]
   (second (re-find #"(.*)/(.*)" p)))
 
+;;; LLM-generated schemas often say :description where Alzabo expects :doc
+(defn normalize-docs
+  "Use kind :description as :doc, and a top-level :description as :explanation, when those are absent."
+  [{:keys [kinds description explanation] :as schema}]
+  (cond-> schema
+    kinds (update :kinds update-vals
+                  (fn [kdef] (if (and (:description kdef) (not (:doc kdef)))
+                               (assoc kdef :doc (:description kdef))
+                               kdef)))
+    (and description (not explanation)) (assoc :explanation [[:p description]])))
+
 (defn read-schema
   [source]
   (prn :read-schema source)
@@ -222,6 +233,7 @@
         slurp
         edn/read-string
         handle-include
+        normalize-docs
         infer-enums
         #_ validate-schema
         ))

@@ -61,11 +61,16 @@
 
 (defmulti do-command-new (fn [command args] (keyword command)))
 
+(defn output-file
+  [output-path file]
+  (str (fs/file output-path file)))
+
 (defmethod do-command-new :documentation
   [_ [schema-input-path & args]]
   (let [schema (schema/read-schema schema-input-path)
         output-path (ju/temp-dir-path)]                ;TODO
-    (html/schema->html schema output-path)))
+    (html/schema->html schema output-path)
+    (browse-file (output-file output-path "index.html"))))
 
 (defmethod do-command :datomic
   [_ _]

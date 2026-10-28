@@ -16,7 +16,6 @@
 
                  ;; Clojure
                  [org.clojure/clojure "1.12.5"]
-                 [hiccup "2.0.0"]
                  [me.raynes/fs "1.4.6"]
 
                  [hato "1.0.0"]         ;replaces clj-http
