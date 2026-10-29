@@ -1,0 +1,727 @@
+{:version "1.1",
+ :title "Jazz Domain Schema",
+ :description
+ "A comprehensive ontology for the jazz domain covering musicians, ensembles, compositions, recordings, musical theory, history, and the cultural infrastructure of jazz",
+ :kinds
+ {:Style
+  {:description
+   "A jazz subgenre or stylistic category (bebop, swing, cool, fusion, free jazz)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the style",
+     :examples ["Bebop" "Cool Jazz" "Free Jazz"]},
+    :description
+    {:type :string,
+     :doc "Description of the style's musical characteristics"},
+    :era
+    {:type :Era, :doc "Historical era in which this style emerged"},
+    :origin
+    {:type :GeographicOrigin, :doc "Geographic origin of the style"},
+    :parentStyle
+    {:type :Style, :doc "Broader style from which this derives"},
+    :substyles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Narrower styles derived from this one"},
+    :characteristicTechniques
+    {:type :Technique,
+     :cardinality :many,
+     :doc "Techniques typical of this style"},
+    :pioneers
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians who pioneered this style"}},
+   :category :context-culture},
+  :Chord
+  {:description "A harmonic structure of simultaneous pitches",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the chord",
+     :examples ["Cmaj7" "Dm7b5" "G13#11"]},
+    :symbol
+    {:type :string,
+     :doc "Chord symbol notation",
+     :examples ["Cmaj7" "Am7" "F#dim"]},
+    :quality
+    {:type :string,
+     :doc "Quality of the chord",
+     :examples ["major" "minor seventh" "dominant"]},
+    :root
+    {:type :string,
+     :doc "Root pitch of the chord",
+     :examples ["C" "F#" "Bb"]},
+    :intervals
+    {:type :string,
+     :cardinality :many,
+     :doc "Intervals comprising the chord",
+     :examples ["root" "major third" "minor seventh"]},
+    :relatedScales
+    {:type :Scale,
+     :cardinality :many,
+     :doc "Scales that fit over this chord"}},
+   :category :musical-theory},
+  :Ensemble
+  {:description
+   "A group of musicians performing together (trio, quartet, big band, etc.)",
+   :reference? true,
+   :fields
+   {:formedDate {:type :Date, :doc "Date the ensemble was formed"},
+    :recordings
+    {:type :Recording,
+     :cardinality :many,
+     :doc "Recordings made by the ensemble"},
+    :name
+    {:type :string,
+     :required? true,
+     :doc "Name of the ensemble",
+     :examples
+     ["Miles Davis Quintet"
+      "Count Basie Orchestra"
+      "Bill Evans Trio"]},
+    :isActive
+    {:type :boolean, :doc "Whether the ensemble is currently active"},
+    :ensembleType
+    {:type :string,
+     :doc "Type/size category of the ensemble",
+     :examples ["Trio" "Quartet" "Big Band"]},
+    :leader {:type :Musician, :doc "Leader of the ensemble"},
+    :disbandedDate
+    {:type :Date, :doc "Date the ensemble disbanded, if applicable"},
+    :styles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles the ensemble performs"},
+    :origin
+    {:type :GeographicOrigin,
+     :doc "Geographic home base of the ensemble"},
+    :members
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians in the ensemble"}},
+   :category :people-entities},
+  :Scale
+  {:description
+   "An ordered set of pitches (blues scale, dorian mode, chromatic)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the scale",
+     :examples ["Blues Scale" "Dorian Mode" "Chromatic Scale"]},
+    :intervalPattern
+    {:type :string,
+     :doc "Pattern of intervals defining the scale",
+     :examples ["W-W-H-W-W-W-H" "H-W-W-W-H-W-W" "1-b3-4-b5-5-b7"]},
+    :degrees {:type :int, :doc "Number of pitches in the scale"},
+    :description
+    {:type :string, :doc "Description and typical usage of the scale"},
+    :relatedChords
+    {:type :Chord,
+     :cardinality :many,
+     :doc "Chords over which this scale is commonly used"}},
+   :category :musical-theory},
+  :RecordLabel
+  {:description "A company that produces and distributes recordings",
+   :reference? true,
+   :fields
+   {:foundedDate {:type :Date, :doc "Date the label was founded"},
+    :closedDate
+    {:type :Date, :doc "Date the label closed, if applicable"},
+    :name
+    {:type :string,
+     :required? true,
+     :doc "Name of the record label",
+     :examples ["Blue Note" "Verve" "Impulse!"]},
+    :albums
+    {:type :Album,
+     :cardinality :many,
+     :doc "Albums released by this label"},
+    :isActive
+    {:type :boolean, :doc "Whether the label is currently active"},
+    :founder
+    {:type :string,
+     :doc "Founder(s) of the label",
+     :examples ["Alfred Lion" "Norman Granz" "Bob Weinstock"]},
+    :website {:type :string, :doc "Official website URL"},
+    :headquarters
+    {:type :GeographicOrigin, :doc "Location of headquarters"},
+    :artists
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Artists signed to this label"}},
+   :icon "🏷️",
+   :category :people-entities},
+  :Composition
+  {:description "An original musical work or tune",
+   :reference? true,
+   :fields
+   {:recordings
+    {:type :Recording,
+     :cardinality :many,
+     :doc "Recordings of this composition"},
+    :key {:type :MusicalKey, :doc "Primary musical key"},
+    :lyricist {:type :Musician, :doc "Lyricist, if any"},
+    :title
+    {:type :string,
+     :required? true,
+     :doc "Title of the composition",
+     :examples ["So What" "Giant Steps" "Round Midnight"]},
+    :coComposers
+    {:type :Musician, :cardinality :many, :doc "Additional composers"},
+    :style {:type :Style, :doc "Stylistic classification"},
+    :chordProgression
+    {:type :ChordProgression, :doc "Primary chord progression"},
+    :composer {:type :Musician, :doc "Primary composer"},
+    :form
+    {:type :string,
+     :doc "Structural form of the composition",
+     :examples ["AABA" "12-bar blues" "ABAC"]},
+    :timeSignature
+    {:type :TimeSignature, :doc "Time signature of the composition"},
+    :composedDate {:type :Date, :doc "Date of composition"},
+    :tempo {:type :Tempo, :doc "Intended tempo"}},
+   :category :works-recordings},
+  :Era
+  {:description
+   "A historical period of jazz development (New Orleans, Swing Era, Modern)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the era",
+     :examples ["New Orleans Era" "Swing Era" "Bebop Era"]},
+    :startYear
+    {:type :int, :doc "Approximate starting year of the era"},
+    :endYear {:type :int, :doc "Approximate ending year of the era"},
+    :description
+    {:type :string, :doc "Description of the era's developments"},
+    :dominantStyles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles prevalent during this era"},
+    :keyMusicians
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians emblematic of this era"},
+    :centers
+    {:type :GeographicOrigin,
+     :cardinality :many,
+     :doc "Geographic centers of activity during this era"}},
+   :category :context-culture},
+  :Album
+  {:description "A released collection of recordings",
+   :reference? true,
+   :fields
+   {:producer {:type :Musician, :doc "Producer of the album"},
+    :recordings
+    {:type :Recording,
+     :cardinality :many,
+     :doc "Recordings/tracks included on the album"},
+    :recordLabel
+    {:type :RecordLabel, :doc "Label that released the album"},
+    :ensemble {:type :Ensemble, :doc "Ensemble credited on the album"},
+    :releaseDate {:type :Date, :doc "Date of release"},
+    :artist {:type :Musician, :doc "Primary credited artist"},
+    :catalogNumber
+    {:type :string,
+     :doc "Catalog number",
+     :examples ["CL 1355" "A-77" "BLP 1577"]},
+    :title
+    {:type :string,
+     :required? true,
+     :doc "Title of the album",
+     :examples ["Kind of Blue" "A Love Supreme" "Time Out"]},
+    :styles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles represented on the album"},
+    :isLive {:type :boolean, :doc "Whether this is a live album"},
+    :awards
+    {:type :Award,
+     :cardinality :many,
+     :doc "Awards received by the album"}},
+   :icon "💿",
+   :category :works-recordings},
+  :Recording
+  {:description "A specific captured performance of a composition",
+   :reference? true,
+   :fields
+   {:key
+    {:type :MusicalKey, :doc "Key this recording is performed in"},
+    :ensemble {:type :Ensemble, :doc "Ensemble on the recording"},
+    :performance {:type :Performance, :doc "The performance captured"},
+    :soloists
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians who take solos"},
+    :duration {:type :int, :doc "Duration in seconds"},
+    :title
+    {:type :string,
+     :required? true,
+     :doc "Title of the recording",
+     :examples ["So What" "Acknowledgement" "Take Five"]},
+    :personnel
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians who participated"},
+    :recordingDate {:type :Date, :doc "Date of recording"},
+    :composition
+    {:type :Composition, :doc "The composition being performed"},
+    :album
+    {:type :Album, :doc "Album on which this recording appears"},
+    :tempo {:type :Tempo, :doc "Tempo of this recording"},
+    :location {:type :Venue, :doc "Studio or venue where recorded"},
+    :isLive {:type :boolean, :doc "Whether this is a live recording"}},
+   :icon "🎙️",
+   :category :works-recordings},
+  :Award
+  {:description
+   "A recognition or honor conferred for musical achievement",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the award",
+     :examples
+     ["Grammy Award" "DownBeat Critics Poll" "NEA Jazz Masters"]},
+    :category
+    {:type :string,
+     :doc "Award category",
+     :examples
+     ["Best Jazz Instrumental Album"
+      "Hall of Fame"
+      "Lifetime Achievement"]},
+    :year {:type :int, :doc "Year the award was conferred"},
+    :organization
+    {:type :string,
+     :doc "Organization conferring the award",
+     :examples
+     ["Recording Academy"
+      "DownBeat Magazine"
+      "National Endowment for the Arts"]},
+    :recipient
+    {:type :Musician, :doc "Musician who received the award"},
+    :description {:type :string, :doc "Description of the award"}},
+   :icon "🏆",
+   :category :context-culture},
+  :Venue
+  {:description
+   "A physical location where performances occur (club, hall, festival site)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the venue",
+     :examples ["Village Vanguard" "Birdland" "Preservation Hall"]},
+    :venueType
+    {:type :string,
+     :doc "Type of venue",
+     :examples ["Jazz Club" "Concert Hall" "Festival Site"]},
+    :location
+    {:type :GeographicOrigin, :doc "Geographic location of the venue"},
+    :address
+    {:type :string,
+     :doc "Street address",
+     :examples
+     ["178 Seventh Avenue South, New York"
+      "726 St Peter St, New Orleans"]},
+    :openedDate {:type :Date, :doc "Date the venue opened"},
+    :closedDate
+    {:type :Date, :doc "Date the venue closed, if applicable"},
+    :capacity {:type :int, :doc "Maximum audience capacity"},
+    :isActive
+    {:type :boolean, :doc "Whether the venue is currently active"}},
+   :icon "📍",
+   :category :context-culture},
+  :Instrument
+  {:description "A musical instrument used to produce sound",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the instrument",
+     :examples ["Trumpet" "Tenor Saxophone" "Double Bass"]},
+    :family
+    {:type :InstrumentFamily, :doc "Family the instrument belongs to"},
+    :description {:type :string, :doc "Description of the instrument"},
+    :commonTechniques
+    {:type :Technique,
+     :cardinality :many,
+     :doc "Techniques common to this instrument"},
+    :commonRoles
+    {:type :Role,
+     :cardinality :many,
+     :doc "Typical ensemble roles for this instrument"}},
+   :icon "🎷",
+   :category :performance-practice},
+  :Musician
+  {:description
+   "An individual who performs, composes, or arranges jazz music",
+   :reference? true,
+   :fields
+   {:compositions
+    {:type :Composition,
+     :cardinality :many,
+     :doc "Compositions written by this musician"},
+    :deathDate {:type :Date, :doc "Date of death if deceased"},
+    :ensembles
+    {:type :Ensemble,
+     :cardinality :many,
+     :doc "Ensembles this musician has been part of"},
+    :influences
+    {:type :Influence,
+     :cardinality :many,
+     :doc "Influence relationships on this musician"},
+    :name
+    {:type :string,
+     :required? true,
+     :doc "Full name of the musician",
+     :examples ["Miles Davis" "John Coltrane" "Thelonious Monk"]},
+    :roles
+    {:type :Role,
+     :cardinality :many,
+     :doc "Roles typically filled by this musician"},
+    :birthDate {:type :Date, :doc "Date of birth"},
+    :instruments
+    {:type :Instrument, :cardinality :many, :doc "Instruments played"},
+    :styles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles associated with this musician"},
+    :origin {:type :GeographicOrigin, :doc "Place of birth or origin"},
+    :biography {:type :string, :doc "Biographical information"},
+    :stageName
+    {:type :string,
+     :doc "Professional/stage name if different",
+     :examples ["Bird" "Dizzy" "Trane"]},
+    :awards
+    {:type :Award, :cardinality :many, :doc "Awards received"}},
+   :icon "🎺",
+   :category :people-entities},
+  :MusicalKey
+  {:description
+   "A tonal center and mode (e.g., B-flat major, D minor)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the key",
+     :examples ["B-flat major" "D minor" "F# major"]},
+    :tonic
+    {:type :string,
+     :doc "Tonic pitch of the key",
+     :examples ["Bb" "D" "F#"]},
+    :mode
+    {:type :string,
+     :doc "Mode of the key",
+     :examples ["major" "minor" "dorian"]},
+    :keySignature
+    {:type :string,
+     :doc "Key signature description",
+     :examples ["2 flats" "1 flat" "6 sharps"]}},
+   :icon "🎼",
+   :category :musical-theory},
+  :InstrumentFamily
+  {:description
+   "A classification grouping of instruments (brass, woodwind, percussion, strings, keyboard)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the instrument family",
+     :examples ["Brass" "Woodwind" "Percussion"]},
+    :description
+    {:type :string,
+     :doc "Description of the family's characteristics"},
+    :instruments
+    {:type :Instrument,
+     :cardinality :many,
+     :doc "Instruments belonging to this family"}},
+   :category :performance-practice},
+  :TimeSignature
+  {:description "A metrical specification of beats per measure",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name/notation of the time signature",
+     :examples ["4/4" "3/4" "5/4"]},
+    :beatsPerMeasure
+    {:type :int, :doc "Number of beats in each measure"},
+    :beatUnit {:type :int, :doc "Note value that represents one beat"},
+    :description
+    {:type :string,
+     :doc "Description and typical feel",
+     :examples ["Common time" "Waltz time" "Odd meter"]}},
+   :icon "🎵",
+   :category :musical-theory},
+  :Performance
+  {:description
+   "A live or studio rendering of music at a time and place",
+   :reference? true,
+   :fields
+   {:compositions
+    {:type :Composition,
+     :cardinality :many,
+     :doc "Compositions performed"},
+    :date {:type :Date, :doc "Date of the performance"},
+    :recordings
+    {:type :Recording,
+     :cardinality :many,
+     :doc "Recordings captured from this performance"},
+    :ensemble {:type :Ensemble, :doc "Ensemble that performed"},
+    :title
+    {:type :string,
+     :doc "Title or description of the performance",
+     :examples
+     ["Live at the Village Vanguard"
+      "Newport 1956 Set"
+      "Studio Session"]},
+    :performers
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians who performed"},
+    :festival
+    {:type :Festival,
+     :doc "Festival at which this performance occurred, if any"},
+    :venue
+    {:type :Venue, :doc "Venue where the performance took place"},
+    :isLive
+    {:type :boolean, :doc "Whether this was a live performance"}},
+   :icon "🎶",
+   :category :works-recordings},
+  :GeographicOrigin
+  {:description
+   "A place associated with a style, scene, or artist (New Orleans, Kansas City, Harlem)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the place",
+     :examples ["New Orleans" "Kansas City" "Harlem"]},
+    :city
+    {:type :string,
+     :doc "City name",
+     :examples ["New Orleans" "Kansas City" "New York"]},
+    :region
+    {:type :string,
+     :doc "State or region",
+     :examples ["Louisiana" "Missouri" "New York"]},
+    :country
+    {:type :string, :doc "Country", :examples ["USA" "France" "Cuba"]},
+    :description
+    {:type :string, :doc "Significance of the place in jazz history"},
+    :associatedStyles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles associated with this place"}},
+   :icon "🌍",
+   :category :context-culture},
+  :ChordProgression
+  {:description
+   "An ordered sequence of chords (ii-V-I, rhythm changes)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the progression",
+     :examples ["ii-V-I" "Rhythm Changes" "Blues Progression"]},
+    :romanNumerals
+    {:type :string,
+     :doc "Roman numeral representation",
+     :examples ["ii-V-I" "I-vi-ii-V" "I-IV-I-V"]},
+    :chords
+    {:type :Chord,
+     :cardinality :many,
+     :doc "Ordered chords in the progression"},
+    :key {:type :MusicalKey, :doc "Key context for the progression"},
+    :description
+    {:type :string, :doc "Description and typical usage"}},
+   :category :musical-theory},
+  :Tempo
+  {:description
+   "A rate of musical pulse, often with descriptive marking",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Descriptive tempo marking",
+     :examples ["Medium Swing" "Ballad" "Up Tempo"]},
+    :bpm {:type :int, :doc "Beats per minute"},
+    :description
+    {:type :string,
+     :doc "Description of the tempo feel",
+     :examples
+     ["Relaxed four-feel" "Slow and expressive" "Fast and driving"]}},
+   :icon "⏱️",
+   :category :musical-theory},
+  :Role
+  {:description
+   "A functional part played in an ensemble (soloist, sideman, bandleader, rhythm section)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the role",
+     :examples ["Soloist" "Sideman" "Bandleader"]},
+    :description
+    {:type :string, :doc "Description of the role's function"},
+    :typicalInstruments
+    {:type :Instrument,
+     :cardinality :many,
+     :doc "Instruments commonly filling this role"}},
+   :category :performance-practice},
+  :Festival
+  {:description
+   "A recurring organized event featuring jazz performances",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the festival",
+     :examples
+     ["Newport Jazz Festival"
+      "Montreux Jazz Festival"
+      "North Sea Jazz Festival"]},
+    :location
+    {:type :GeographicOrigin,
+     :doc "Geographic location of the festival"},
+    :venue {:type :Venue, :doc "Primary venue of the festival"},
+    :foundedDate {:type :Date, :doc "Date the festival was founded"},
+    :frequency
+    {:type :string,
+     :doc "How often the festival occurs",
+     :examples ["Annual" "Biennial" "Annual (Summer)"]},
+    :performances
+    {:type :Performance,
+     :cardinality :many,
+     :doc "Notable performances at the festival"},
+    :isActive
+    {:type :boolean, :doc "Whether the festival is currently active"}},
+   :icon "🎪",
+   :category :context-culture},
+  :Influence
+  {:description
+   "A directed relationship of stylistic or personal impact between artists",
+   :fields
+   {:source
+    {:type :Musician,
+     :required? true,
+     :doc "The influencing musician"},
+    :target
+    {:type :Musician, :required? true, :doc "The influenced musician"},
+    :influenceType
+    {:type :string,
+     :doc "Nature of the influence",
+     :examples ["stylistic" "harmonic" "mentorship"]},
+    :description
+    {:type :string,
+     :doc "Description of how the influence manifested"},
+    :styles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles transmitted through this influence"}},
+   :category :context-culture},
+  :Standard
+  {:description
+   "A widely performed composition in the jazz repertoire",
+   :reference? true,
+   :fields
+   {:composition
+    {:type :Composition,
+     :required? true,
+     :doc "The composition that is a standard"},
+    :title
+    {:type :string,
+     :required? true,
+     :doc "Title of the standard",
+     :examples
+     ["Autumn Leaves" "All the Things You Are" "Body and Soul"]},
+    :source
+    {:type :string,
+     :doc "Original source (musical, film, etc.)",
+     :examples
+     ["Broadway musical" "Tin Pan Alley" "Original jazz composition"]},
+    :yearEstablished
+    {:type :int, :doc "Year the piece became a standard"},
+    :notableRecordings
+    {:type :Recording,
+     :cardinality :many,
+     :doc "Notable recordings of this standard"},
+    :commonKeys
+    {:type :MusicalKey,
+     :cardinality :many,
+     :doc "Keys the standard is commonly played in"}},
+   :category :works-recordings},
+  :Technique
+  {:description
+   "A method of playing or vocalizing (improvisation, scat, walking bass, comping)",
+   :reference? true,
+   :fields
+   {:name
+    {:type :string,
+     :required? true,
+     :doc "Name of the technique",
+     :examples ["Improvisation" "Scat Singing" "Walking Bass"]},
+    :description
+    {:type :string,
+     :doc "Description of how the technique is executed"},
+    :applicableInstruments
+    {:type :Instrument,
+     :cardinality :many,
+     :doc "Instruments on which this technique is used"},
+    :associatedStyles
+    {:type :Style,
+     :cardinality :many,
+     :doc "Styles in which this technique is prominent"},
+    :pioneers
+    {:type :Musician,
+     :cardinality :many,
+     :doc "Musicians who pioneered or exemplify this technique"}},
+   :category :performance-practice}},
+ :categories
+ {:people-entities
+  {:color "#a9cce3",
+   :label "People & Groups",
+   :doc
+   "Individuals and organized groups that create and perform jazz music."},
+  :musical-theory
+  {:color "#f5cba7",
+   :label "Musical Theory",
+   :doc
+   "Abstract theoretical concepts and structures underpinning jazz music."},
+  :works-recordings
+  {:color "#abebc6",
+   :label "Works & Recordings",
+   :doc
+   "Composed works and their captured or performed realizations."},
+  :performance-practice
+  {:color "#f9e79f",
+   :label "Performance & Practice",
+   :doc
+   "Instruments, roles, and techniques involved in making music."},
+  :context-culture
+  {:color "#d7bde2",
+   :label "Context & Culture",
+   :doc
+   "Historical, geographic, and institutional contexts surrounding jazz."}},
+ :enums {}}

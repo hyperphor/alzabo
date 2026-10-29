@@ -1,4 +1,4 @@
-(defproject com.hyperphor/alzabo "1.3.10"
+(defproject com.hyperphor/alzabo "2.0.0"
   :description "Semantic schema format and tools, for Datomic and other uses."
   :url "http://github.com/hyperphor/alzabo"
   :license {:name "Apache 2 License"
@@ -7,8 +7,8 @@
                                      :username :env/clojars_username
                                      :password :env/clojars_password}]]
   :dependencies [
-                 [com.hyperphor/multitool "0.3.3"]
-                 [com.hyperphor/ellum "0.1.4"]
+                 [com.hyperphor/multitool "0.3.4"]
+                 [com.hyperphor/ellum "0.1.6"]
                  [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
                  [inflections "0.15.0"]
@@ -16,7 +16,6 @@
 
                  ;; Clojure
                  [org.clojure/clojure "1.12.5"]
-                 [hiccup "2.0.0"]
                  [me.raynes/fs "1.4.6"]
 
                  [hato "1.0.0"]         ;replaces clj-http

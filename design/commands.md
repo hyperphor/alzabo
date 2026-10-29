@@ -12,6 +12,9 @@ Makes no sense, put it in schema (at runtime if necessary)
 ## documentation
 
 ## add-icons
+## add-categories
+These are primarily so you can update old schemas
+Hm, or could be part of an import -> export pipeline? So Maybe are logically options to import
 
 ## server
 Is this needed any mroe? It's all static files

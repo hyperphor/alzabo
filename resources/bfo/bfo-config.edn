@@ -1,0 +1,3 @@
+;; bfo-core.ofn is from https://github.com/bfo-ontology/BFO-2020 (21838-2/owl, commit bd1fb61), CC-BY 4.0
+{:source "bfo-core.ofn"
+ :output-path "output/schema/bfo/2020/"}

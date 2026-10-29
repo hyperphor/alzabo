@@ -98,12 +98,17 @@
 (s/def ::orientation #{:horizontal :vertical})
 (s/def ::width number?)
 (s/def ::height number?)
-(s/def ::edge-labels? boolean?)
+(s/def ::edge-labels? #{true false :minimal})
+;;; Raw Graphviz attributes
+(s/def ::graph-attrs (s/map-of keyword? any?))
+(s/def ::node-attrs (s/map-of keyword? any?))
+(s/def ::edge-attrs (s/map-of keyword? any?))
+(s/def ::render (s/keys :opt-un [::orientation ::width ::height ::edge-labels?
+                                 ::graph-attrs ::node-attrs ::edge-attrs]))
 
 (s/def ::schema (s/keys :req-un [::kinds]
                         :opt-un [::enums ::version ::title
-                                 ::categories ::explanation ::orientation
-                                 ::width ::height ::edge-labels?]))
+                                 ::categories ::explanation ::render]))
 
 ;; Forward declaration for inheritance validation (defined later in file)
 (declare validate-inheritance)
@@ -209,6 +214,24 @@
   [p]
   (second (re-find #"(.*)/(.*)" p)))
 
+;;; LLM-generated schemas often say :description where Alzabo expects :doc
+(defn- description->doc
+  [def]
+  (if (and (map? def) (string? (:description def)) (not (:doc def)))
+    (assoc def :doc (:description def))
+    def))
+
+(defn normalize-docs
+  "Use :description as :doc on kinds, fields, and enums, and a top-level :description as :explanation, when those are absent."
+  [{:keys [kinds enums description explanation] :as schema}]
+  (cond-> schema
+    kinds (update :kinds update-vals
+                  (fn [kdef]
+                    (cond-> (description->doc kdef)
+                      (map? (:fields kdef)) (update :fields update-vals description->doc))))
+    (map? enums) (update :enums update-vals description->doc)
+    (and description (not explanation)) (assoc :explanation [[:p description]])))
+
 (defn read-schema
   [source]
   (prn :read-schema source)
@@ -217,6 +240,7 @@
         slurp
         edn/read-string
         handle-include
+        normalize-docs
         infer-enums
         #_ validate-schema
         ))

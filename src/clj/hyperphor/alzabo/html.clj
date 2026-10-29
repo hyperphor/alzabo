@@ -1,12 +1,12 @@
 (ns hyperphor.alzabo.html
   (:require [hyperphor.alzabo.schema :as schema]
             [hyperphor.multitool.core :as u]
+            [hyperphor.multitool.graph :as graph]
             [clojure.string :as s]
             [clojure.pprint :as pp]
             [me.raynes.fs :as fs]
             [inflections.core :as inflect]
-            [clojure.java.io :as io]
-            [clojure.java.shell :as shell])
+            [clojure.java.io :as io])
   (:import [java.nio.file Files Path LinkOption]
            [java.nio.file.attribute FileAttribute])
   (:use [hiccup.core]))
@@ -15,15 +15,23 @@
 ;;; itself (with these as fallback defaults) since they're presentation
 ;;; details of a particular schema, not deployment config.
 (def default-graph-options
-  {:edge-labels? :minimal
-   :width 100
-   :height 64
-   :orientation :vertical
-   :categories {:default {:color "#a9cce3"}}})
+  {:categories {:default {:color "#a9cce3"}}
+   :render {:edge-labels? :minimal
+            ;; :width / :height: max graph size in pixels (scales down only)
+            :orientation :vertical
+            ;; Edge labels as xlabels, placed after layout; regular labels become layout nodes and spread the graph sideways
+            :xlabels? true
+            ;; :graph-attrs, :node-attrs, :edge-attrs are merged over hyperphor.multitool.graph/default-attrs
+            :graph-attrs {:nodesep 0.15 :ranksep 0.6}
+            ;; Inheritance edges alone determine layout (parents above children); for ontologies
+            :taxonomy? false
+            ;; Group each category's kinds into a labeled Graphviz cluster (needs 2+ categories in use)
+            :clusters? false
+            }})
 
 (defn- with-graph-defaults
   [schema]
-  (merge default-graph-options schema))
+  (u/merge* default-graph-options schema))
 
 ;;; Bound to the schema for the duration of schema->html, so deeply-nested
 ;;; renderers (field type links, index tables, etc) can look up a kind's
@@ -75,7 +83,7 @@
 (defn- linkify
   [s]
   (when s 
-    (s/replace s #"(http(s|)\:\S*)" "<a href=\"$1\">$1</a>")))
+    (s/replace s #"(https?\:\S*[^\s.,;:)])" "<a href=\"$1\">$1</a>")))
 
 ;;; can't believe this isn't built into hiccup
 (defn- style-arg
@@ -193,11 +201,6 @@
      (for [[v doc] values]
        (html [:tr [:td v] [:td doc]]))]]))
 
-(defn- clear-directory
-  [d]
-  (fs/delete-dir d LinkOption/NOFOLLOW_LINKS)
-  (fs/mkdirs d))
-
 (defn output-file
   [output-path file]
   (str (fs/file output-path file)))
@@ -254,10 +257,23 @@
        body]))
   
 
+(defn- category-legend
+  "Color key for the graph: one swatch per category in `used`."
+  [categories used]
+  [:div.legend {:style (style-arg {:display "flex" :flex-wrap "wrap" :gap "12px" :margin "8px 0"})}
+   (for [cat used
+         :let [{:keys [color label doc]} (get categories cat)]]
+     [:span {:title (or doc "") :style (style-arg {:display "inline-flex" :align-items "center" :gap "5px"})}
+      [:span {:style (style-arg {:display "inline-block" :width "14px" :height "14px"
+                                 :border "1px solid #888" :border-radius "3px" :background color})}]
+      (or label (inflect/titleize (name cat)))])])
+
 (defn- index->html
-  [{:keys [kinds enums version title categories explanation] :as schema} tag-version output-path]
-  (let [categories (or categories (:categories default-graph-options)) ;TODO kludge
-        groups (group-by #(get % :category :default) (vals (u/self-label :id kinds)))]
+  [{:keys [kinds enums version title explanation] :as schema} tag-version output-path]
+  (let [categories (:categories (with-graph-defaults schema))
+        groups (group-by #(get % :category :default) (vals (u/self-label :id kinds)))
+        ;; Categories that actually have kinds, in declared order
+        used (filter groups (keys categories))]
     (html
         [:div.container                 ;TODO use page-html
          [:div.header
@@ -269,6 +285,8 @@
            )
          [:div.row
           [:div.py-5
+           (when (> (count used) 1)
+             (category-legend categories used))
            [:img {:src "schema.dot.svg"
                   :usemap "#schema"}]
            (slurp (output-file output-path "schema.dot.cmapx"))
@@ -276,11 +294,11 @@
          [:div.row
           [:div.m-2
            [:h2 "Entities"]                ;aka Kinds, I suppose this should be configurable
-           (for [category-name (keys categories)]
+           (for [category-name used]
              (let [kinds (category-name groups)
                    category (category-name categories)]
                [:div
-                (when (> (count categories) 1)
+                (when (> (count used) 1)
                   [:h3 {:style (header-style (:color category))}
                    (or (:label category)
                        (inflect/titleize category-name))])
@@ -324,84 +342,142 @@
                       (list [fname type cardinality])))
                   (get-in kinds [kind :fields]))))
 
-(defn- sh-errchecked
-  [& args]
-  (let [res (apply shell/sh args)]
-    (when-not (= (:exit res) 0)
-      (throw (Exception. (str "Bad result from shell" res))))
-    res))
+
+(defn omit-label?
+  [label ref]
+  (s/includes? (s/lower-case (name ref))
+               (s/lower-case (name label))))
+
+
+(defn- edge-label?
+  [edge-labels? label ref]
+  (case edge-labels?
+    :minimal (omit-label? label ref) #_(not (or (= label ref)
+                      (= (name label) (inflect/plural ref))))
+    true true
+    false))
+
+;;; Graphviz size is inches, width first, and only shrinks (keeping aspect ratio).
+;;; Browsers show dot's SVG at 96px/in, which is also the cmapx coordinate scale.
+(defn- graph-size
+  "Graphviz size attr for a maximum `width`/`height` in pixels; either may be nil."
+  [width height]
+  (let [in #(if % (/ % 96.0) 10000)]
+    (str (in width) "," (in height))))
+
+;;; dot seeds within-rank order from input order, so this tends to put same-category kinds near each other
+(defn- category-sorted
+  "`kinds` entries sorted by their category's position in `categories`, then by name."
+  [kinds categories]
+  (let [pos (zipmap (keys categories) (range))]
+    (sort-by (fn [[kind {:keys [category] :or {category :default}}]]
+               [(get pos category Integer/MAX_VALUE) (name kind)])
+             kinds)))
+
+(defn- graph-spec
+  "Build a hyperphor.multitool.graph spec (default attrs plus node and edge lists) for `schema`."
+  [schema]
+  (let [{:keys [kinds categories render]} (with-graph-defaults schema)
+        {:keys [orientation width height edge-labels? xlabels? taxonomy? graph-attrs node-attrs edge-attrs]} render
+        clean (fn [kind] (s/replace (name kind) \- \_))]
+    {:name "schema"                     ;names the cmapx <map>, see index->html's :usemap
+     :graph-attrs (merge {:rankdir (case orientation
+                                     :horizontal "LR"
+                                     :vertical "TB")}
+                         (when (or width height)
+                           {:size (graph-size width height)})
+                         graph-attrs)
+     :node-attrs node-attrs
+     :edge-attrs edge-attrs
+     :nodes (for [[kind {:keys [doc category icon] :as kind-def :or {category :default}}] (category-sorted kinds categories)]
+              [(clean kind)
+               (merge {:URL (kind-url kind)
+                       :label (if icon (str icon " " (name kind)) (name kind))
+                       :tooltip (or doc (name kind))
+                       :fillcolor (get-in categories [category :color])}
+                      (get-in categories [category :node-attrs])
+                      (:node-attrs kind-def))])
+     :edges (concat
+             (for [kind (keys kinds)
+                   [label ref cardinality] (kind-relations kind schema)]
+               [(clean kind)
+                (clean ref)
+                (merge {:arrowhead (if (= cardinality :many) "crow" "normal")}
+                       (when taxonomy? {:constraint false})
+                       (when (edge-label? edge-labels? label ref)
+                         ;; Leading space keeps the label off its edge; dot has no edge label margin
+                         {(if xlabels? :xlabel :label) (str " " (name label))}))])
+             ;; Inheritance edges, dashed (child -> parent); with :taxonomy? laid out parent-first so the tree reads top-down
+             (for [kind (keys kinds)
+                   parent (schema/get-parents schema kind)]
+               (if taxonomy?
+                 [(clean parent)
+                  (clean kind)
+                  {:style "dashed" :dir "back" :arrowtail "empty" :color "#4CAF50" :penwidth "2.0"}]
+                 [(clean kind)
+                  (clean parent)
+                  {:style "dashed"
+                   :arrowhead "empty"
+                   :color "#4CAF50"
+                   :penwidth "2.0"}])))}))
+
+(defn- dot-attrs
+  [m]
+  (s/join "," (for [[k v] m :when (some? v)]
+                (format "%s=%s" (name k) (pr-str (if (keyword? v) (name v) (str v)))))))
+
+;;; Translucent tint of a #rrggbb category color for the cluster background; other color forms get no fill
+(defn- cluster-fill
+  [color]
+  (when (and (string? color) (re-matches #"#[0-9a-fA-F]{6}" color))
+    (str color "40")))
+
+(defn- cluster-specs
+  "[[cluster-id attrs node-ids]...], one per category in use, if :clusters? and 2+ categories are used.
+  Uncategorized kinds stay outside any cluster."
+  [schema]
+  (let [{:keys [kinds categories render]} (with-graph-defaults schema)
+        groups (group-by (fn [[_ kdef]] (:category kdef)) kinds)
+        used (filter #(and (not= % :default) (get groups %)) (keys categories))]
+    (when (and (:clusters? render) (> (count used) 1))
+      (for [cat used
+            :let [{:keys [color label cluster-attrs]} (get categories cat)]]
+        [(str "cluster_" (name cat))
+         (merge {:label (or label (inflect/titleize (name cat)))
+                 :style "rounded,filled"
+                 :color color
+                 :fillcolor (or (cluster-fill color) "white")
+                 :penwidth 1.5
+                 :fontname "Helvetica-Bold"
+                 :fontsize 13
+                 :labeljust "l"}
+                cluster-attrs)
+         (map (fn [[kind _]] (s/replace (name kind) \- \_)) (get groups cat))]))))
+
+;;; multitool's spec->dot has no subgraphs; a node mentioned in a cluster joins it even if declared earlier
+(defn- add-clusters
+  "Splice `clusters` (as from cluster-specs) into `dot` source as subgraph statements."
+  [dot clusters]
+  (if (empty? clusters)
+    dot
+    (let [close (s/last-index-of dot "}")]
+      (str (subs dot 0 close)
+           (s/join (for [[id attrs nodes] clusters]
+                     (format "subgraph %s {\ngraph [%s];\n%s\n}\n"
+                             (pr-str id) (dot-attrs attrs)
+                             (s/join " " (map #(str (pr-str %) ";") nodes)))))
+           (subs dot close)))))
 
 ;;; Requires installation of graphviz ('brew install graphviz' on Mac)
-(def dot-command "dot")
-
-(def graph-font "Helvetica")
-
-;;; TODO if this gets any more complex, consider replacing with https://github.com/daveray/dorothy
 (defn- write-graphviz
+  "Write `dot-file` for `schema`, plus <dot-file>.svg and <dot-file>.cmapx."
   [schema dot-file]
-  (let [{:keys [kinds enums categories orientation width height edge-labels?]} (with-graph-defaults schema)
-        clean (fn [kind] (s/replace (name kind) \- \_))
-        attributes
-        (fn [m & [sep]]
-          ;; For some reason graph attributes need a different separator
-          (s/join (or sep ",") (map (fn [[k v]] (format "%s=%s" (name k) (pr-str v))) m)))]
+  (let [dot (add-clusters (graph/spec->dot (graph-spec schema)) (cluster-specs schema))]
     (println "Writing " dot-file)
-    (with-open [wrtr (clojure.java.io/writer dot-file)]
-      (binding [*out* wrtr]
-        (println "digraph schema {")
-        (println (attributes
-                  {:rankdir (case orientation
-                              :horizontal "LR"
-                              :vertical "TB")
-                   :size (str height "," width)
-                   }
-                  ";"))
-        (doseq [kind (keys kinds)]
-          (let [{:keys [doc category icon] :or {category :default}} (get-in schema [:kinds kind])]
-            (println (format "%s [%s];"
-                             (clean kind)
-                             (attributes {:URL (kind-url kind)
-                                          :label (if icon (str icon " " (name kind)) (name kind))
-                                          :tooltip (or doc (name kind))
-                                          :style "filled"
-                                          :fillcolor (get-in categories [category :color])
-                                          :fontname graph-font}))))
-          (doseq [[label ref cardinality] (kind-relations kind schema)]
-            (println (format "%s -> %s [%s];"
-                             (clean kind)
-                             (clean ref)
-                             (attributes
-                              (merge
-                               {:arrowhead (if (= cardinality :many) "diamond" "normal")} ;"crow" is better semantically but looks bad on ovals.
-                               (if (case edge-labels?
-                                     :minimal (not (or (= label ref)
-                                                       (= (name label) (inflect/plural ref))))
-                                     true true
-                                     :else false)
-                                 {:fontname graph-font
-                                  :label (name label)})))
-                             )))
-        ;; Add inheritance edges with dashed lines (child -> parent)
-          (doseq [parent (schema/get-parents schema kind)]
-            (println (format "%s -> %s [%s];"
-                             (clean kind) ;TODO might want to swap these
-                             (clean parent)
-                             (attributes {:style "dashed"
-                                          :arrowhead "empty"
-                                          :color "#4CAF50"
-                                          :penwidth "2.0"})))))
-
-        (println "}"))
-      (println "Generating .svg")
-      (sh-errchecked
-       dot-command
-       dot-file
-       "-Tsvg"
-       "-O"
-       "-Tcmapx"
-       "-O"
-       )
-      )))
+    (spit dot-file dot)
+    (println "Generating .svg")
+    (spit (str dot-file ".svg") (graph/dot->format dot "svg"))
+    (spit (str dot-file ".cmapx") (graph/dot->format dot "cmapx"))))
 
 ;;; the fs/ symlink command won't do the right thing
 (defn- make-link
@@ -415,7 +491,7 @@
   "Generate HTML docs for a schema, including .svg and related files, writing them to output-path."
   [{:keys [kinds enums version title] :as schema} output-path]
   (binding [*schema* schema]
-    (clear-directory output-path)
+    (fs/mkdirs output-path)
     ;; Write out the schema itself – used by autocomplete, enflame, etc
     (with-open [o (clojure.java.io/writer (output-file output-path "schema.edn"))]
       (pp/pprint schema o))
