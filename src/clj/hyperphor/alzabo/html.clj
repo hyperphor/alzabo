@@ -23,6 +23,8 @@
             :xlabels? true
             ;; :graph-attrs, :node-attrs, :edge-attrs are merged over hyperphor.multitool.graph/default-attrs
             :graph-attrs {:nodesep 0.15 :ranksep 0.6}
+            ;; Inheritance edges alone determine layout (parents above children); for ontologies
+            :taxonomy? false
             ;; Group each category's kinds into a labeled Graphviz cluster (needs 2+ categories in use)
             :clusters? false
             }})
@@ -81,7 +83,7 @@
 (defn- linkify
   [s]
   (when s 
-    (s/replace s #"(http(s|)\:\S*)" "<a href=\"$1\">$1</a>")))
+    (s/replace s #"(https?\:\S*[^\s.,;:)])" "<a href=\"$1\">$1</a>")))
 
 ;;; can't believe this isn't built into hiccup
 (defn- style-arg
@@ -383,7 +385,7 @@
   "Build a hyperphor.multitool.graph spec (default attrs plus node and edge lists) for `schema`."
   [schema]
   (let [{:keys [kinds categories render]} (with-graph-defaults schema)
-        {:keys [orientation width height edge-labels? xlabels? graph-attrs node-attrs edge-attrs]} render
+        {:keys [orientation width height edge-labels? xlabels? taxonomy? graph-attrs node-attrs edge-attrs]} render
         clean (fn [kind] (s/replace (name kind) \- \_))]
     {:name "schema"                     ;names the cmapx <map>, see index->html's :usemap
      :graph-attrs (merge {:rankdir (case orientation
@@ -408,18 +410,23 @@
                [(clean kind)
                 (clean ref)
                 (merge {:arrowhead (if (= cardinality :many) "crow" "normal")}
+                       (when taxonomy? {:constraint false})
                        (when (edge-label? edge-labels? label ref)
                          ;; Leading space keeps the label off its edge; dot has no edge label margin
                          {(if xlabels? :xlabel :label) (str " " (name label))}))])
-             ;; Inheritance edges, dashed (child -> parent)
+             ;; Inheritance edges, dashed (child -> parent); with :taxonomy? laid out parent-first so the tree reads top-down
              (for [kind (keys kinds)
                    parent (schema/get-parents schema kind)]
-               [(clean kind)
-                (clean parent)
-                {:style "dashed"
-                 :arrowhead "empty"
-                 :color "#4CAF50"
-                 :penwidth "2.0"}]))}))
+               (if taxonomy?
+                 [(clean parent)
+                  (clean kind)
+                  {:style "dashed" :dir "back" :arrowtail "empty" :color "#4CAF50" :penwidth "2.0"}]
+                 [(clean kind)
+                  (clean parent)
+                  {:style "dashed"
+                   :arrowhead "empty"
+                   :color "#4CAF50"
+                   :penwidth "2.0"}])))}))
 
 (defn- dot-attrs
   [m]

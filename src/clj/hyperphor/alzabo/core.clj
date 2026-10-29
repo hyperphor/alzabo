@@ -1,6 +1,7 @@
 (ns hyperphor.alzabo.core
   (:require [hyperphor.alzabo.import.candel :as candel]
             [hyperphor.alzabo.import.linkml :as linkml]
+            [hyperphor.alzabo.import.owl :as owl]
             [hyperphor.alzabo.schema :as schema]
             [hyperphor.alzabo.config :as config]
             [hyperphor.alzabo.html :as html]
@@ -27,8 +28,9 @@
 (defn- schema
   [schema-file]
   (let [schema-file (or schema-file (config/realize-path (config/config :source)))
-        schema (if (re-find #"\.ya?ml$" (str schema-file))
-                 (linkml/linkml->alzabo schema-file)
+        schema (condp re-find (str schema-file)
+                 #"\.ya?ml$" (linkml/linkml->alzabo schema-file)
+                 #"\.ofn$" (owl/owl->alzabo schema-file)
                  (schema/read-schema schema-file))]
     (config/set! :version (:version schema)) ;?
     schema))
