@@ -44,8 +44,6 @@
   (schema)                              ;sets version
   (browse-file (config/output-path "index.html")))
 
-
-;; obs
 (defn write-alzabo
   [schema ]
   (output/write-schema schema (config/output-path "alzabo-schema.edn")))
@@ -61,6 +59,7 @@
       (let [schema (schema schema-file)]
         (html/schema->html schema output-path)))))
 
+;;; New command structure, only partly built out
 (defmulti do-command-new (fn [command args] (keyword command)))
 
 (defn output-file

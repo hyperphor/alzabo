@@ -13,6 +13,7 @@
             [hyperphor.multitool.core :as u]
             [hyperphor.ellum.core :as llm]
             [hyperphor.ellum.extract :as llme]
+            [hyperphor.alzabo.schema :as schema]
             ))
 
 (def default-provider :anthropic)
@@ -259,7 +260,8 @@ List categories in a sensible display order.")
   [domain & {:keys [extra provider model icons? categories?]
              :or {extra "" provider default-provider icons? true categories? true}}]
   (let [kinds-map (generate-kinds domain extra provider model)
-        schema (generate-schema-from-kinds domain kinds-map extra provider model)]
+        ;; normalize before icons/categories, whose prompts read kind :doc
+        schema (schema/normalize-docs (generate-schema-from-kinds domain kinds-map extra provider model))]
     (cond-> schema
       icons? (as-> s (add-icons domain s :provider provider :model model))
       categories? (as-> s (add-categories domain s :provider provider :model model)))))
