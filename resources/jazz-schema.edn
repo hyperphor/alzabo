@@ -1,9 +1,9 @@
-{:version "1.0",
+{:version "1.1",
  :title "Jazz Music Database Schema",
  :description "A comprehensive schema for jazz musicians, bands, songs, recordings, genres, and record labels",
  :kinds
  {:Musician
-  {:description "A jazz musician or performer",
+  {:doc "A jazz musician or performer",
    :reference? true,
    :fields
    {:name {:type :string, :required? true, :doc "Full name of the musician"
@@ -25,7 +25,7 @@
     :awards {:type :Award, :cardinality :many, :doc "Awards and honors received"}}},
 
   :Band
-  {:description "A jazz band or ensemble",
+  {:doc "A jazz band or ensemble",
    :reference? true,
    :fields
    {:name {:type :string, :required? true, :doc "Name of the band"},
@@ -41,7 +41,7 @@
     :isActive {:type :boolean, :doc "Whether the band is currently active"}}},
 
   :BandMembership
-  {:description "Relationship between a musician and a band",
+  {:doc "Relationship between a musician and a band",
    :fields
    {:musician {:type :Musician, :required? true},
     :band {:type :Band, :required? true},
@@ -52,7 +52,7 @@
     :isCurrentMember {:type :boolean, :doc "Whether this is a current membership"}}},
 
   :Song
-  {:description "A jazz composition or song",
+  {:doc "A jazz composition or song",
    :reference? true,
    :fields
    {:title {:type :string, :required? true, :doc "Title of the song"},
@@ -74,7 +74,7 @@
     :publisher {:type :string, :doc "Music publisher"}}},
 
   :Recording
-  {:description "A specific recording of one or more songs",
+  {:doc "A specific recording of one or more songs",
    :reference? true,
    :fields
    {:title {:type :string, :required? true, :doc "Title of the recording/album"},
@@ -95,7 +95,7 @@
     :awards {:type :Award, :cardinality :many, :doc "Awards received by this recording"}}},
 
   :Track
-  {:description "An individual track on a recording",
+  {:doc "An individual track on a recording",
    :fields
    {:trackNumber {:type :int, :required? true, :doc "Track number on the recording"},
     :song {:type :Song, :required? true, :doc "The song being performed on this track"},
@@ -108,7 +108,7 @@
 
   ;; TODO same as BandMembership, sort of? Think about it.
   :RecordingPersonnel
-  {:description "A musician's participation in a specific recording",
+  {:doc "A musician's participation in a specific recording",
    :fields
    {:musician {:type :Musician, :required? true},
     :instrument {:type :Instrument, :required? true},
@@ -116,7 +116,7 @@
     :tracks {:type :int, :cardinality :many, :doc "Track numbers this musician appears on"}}},
 
   :Genre
-  {:description "A musical genre or subgenre",
+  {:doc "A musical genre or subgenre",
    :reference? true,
    :fields
    {:name {:type :string, :required? true, :doc "Name of the genre"},
@@ -128,7 +128,7 @@
     :influentialArtists {:type :Musician, :cardinality :many, :doc "Artists who helped define this genre"}}},
 
   :RecordLabel
-  {:description "A record label or recording company",
+  {:doc "A record label or recording company",
    :reference? true,
    :fields
    {:name {:type :string, :required? true, :doc "Name of the record label"},
@@ -146,7 +146,7 @@
     :isActive {:type :boolean, :doc "Whether the label is currently active"}}},
 
   :Instrument
-  {:description "A musical instrument",
+  {:doc "A musical instrument",
    :reference? true,
    :fields
    {:name {:type :string, :required? true, :doc "Name of the instrument"},
@@ -155,7 +155,7 @@
     :keyCharacteristics {:type :string, :cardinality :many, :doc "Key characteristics in jazz performance"}}},
 
   :Venue
-  {:description "A venue where jazz is performed",
+  {:doc "A venue where jazz is performed",
    :reference? true,
    :fields
    {:name {:type :string, :required? true, :doc "Name of the venue"},
@@ -169,7 +169,7 @@
     :isActive {:type :boolean, :doc "Whether the venue is currently active"}}},
 
   :Award
-  {:description "An award or honor",
+  {:doc "An award or honor",
    :fields
    {:name {:type :string, :required? true, :doc "Name of the award"},
     :category {:type :string, :doc "Award category"},

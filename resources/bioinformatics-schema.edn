@@ -1,0 +1,1336 @@
+{:version "1.0",
+ :title "Bioinformatics Tools Domain Schema",
+ :kinds
+ {:MaturityStatus
+  {:doc "The development or support stage of a tool",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the maturity status",
+     :unique? true,
+     :examples ["Stable" "Beta" "Deprecated"]},
+    :description
+    {:type :string, :doc "Description of what this status implies"},
+    :actively-supported?
+    {:type :boolean,
+     :doc "Whether the status implies ongoing support"}}},
+  :QualityMetric
+  {:doc "A measure of tool or data performance and reliability",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the quality metric",
+     :examples ["Precision" "Recall" "F1 Score"]},
+    :value {:type :double, :doc "Numeric value of the metric"},
+    :unit
+    {:type :MeasurementUnit,
+     :doc "Unit of measurement for this metric"},
+    :description
+    {:type :string, :doc "Explanation of what the metric measures"}}},
+  :Taxon
+  {:doc "A taxonomic classification unit",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Scientific name of the taxon",
+     :examples ["Homo sapiens" "Escherichia coli" "Mus musculus"]},
+    :rank {:type :taxonomic-rank-enum, :doc "Taxonomic rank"},
+    :ncbi-taxon-id
+    {:type :Identifier, :doc "NCBI Taxonomy identifier"},
+    :parent {:type :Taxon, :doc "Parent taxon in the hierarchy"},
+    :common-name
+    {:type :string,
+     :doc "Common name",
+     :examples ["Human" "Mouse" "Fruit fly"]}},
+   :icon "🌳"},
+  :FileFormat
+  {:doc "A specification for structuring biological data files",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the file format",
+     :unique? true,
+     :examples ["FASTA" "FASTQ" "VCF"]},
+    :extension
+    {:type :string,
+     :doc "File extension(s)",
+     :cardinality :many,
+     :examples [".fasta" ".fastq" ".vcf"]},
+    :media-type
+    {:type :string,
+     :doc "MIME media type",
+     :examples ["text/x-fasta" "application/octet-stream"]},
+    :binary? {:type :boolean, :doc "Whether the format is binary"},
+    :specification-url
+    {:type :string, :doc "URL to the format specification"},
+    :data-standard
+    {:type :DataStandard, :doc "Associated data standard"}},
+   :icon "📄"},
+  :DataRepository
+  {:doc "A storage system for biological datasets",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the data repository",
+     :unique? true,
+     :examples ["NCBI SRA" "EMBL-EBI ENA" "Zenodo"]},
+    :url {:type :string, :doc "URL of the repository"},
+    :maintained-by
+    {:type :Organization,
+     :doc "Organization that maintains the repository"},
+    :access-mode
+    {:type :AccessMode,
+     :cardinality :many,
+     :doc "Available access modes"},
+    :datasets
+    {:type :Dataset,
+     :cardinality :many,
+     :doc "Datasets hosted in the repository"}},
+   :icon "🗄️"},
+  :ExperimentalAssay
+  {:doc "A laboratory or computational measurement technique",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the assay",
+     :examples ["RNA-seq" "ChIP-seq" "Mass spectrometry"]},
+    :description {:type :string, :doc "Description of the assay"},
+    :measures
+    {:type :Biomolecule,
+     :cardinality :many,
+     :doc "Biomolecules measured by this assay"},
+    :instrument
+    {:type :Instrument,
+     :cardinality :many,
+     :doc "Instruments used in the assay"},
+    :research-domain
+    {:type :ResearchDomain, :doc "Primary research domain"}}},
+  :Container
+  {:doc "A packaged software environment image",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the container image",
+     :examples ["biocontainers/samtools" "quay.io/biocontainers/bwa"]},
+    :registry
+    {:type :string,
+     :doc "Container registry hosting the image",
+     :examples ["Docker Hub" "Quay.io" "BioContainers"]},
+    :tag
+    {:type :string,
+     :doc "Image tag or version",
+     :examples ["latest" "1.15.1" "v2.0"]},
+    :container-runtime
+    {:type :container-runtime-enum,
+     :doc "Container runtime technology"},
+    :packages
+    {:type :Package,
+     :cardinality :many,
+     :doc "Packages bundled in the container"},
+    :base-image
+    {:type :string,
+     :doc "Base image used",
+     :examples ["ubuntu:22.04" "debian:bullseye"]}},
+   :icon "📦"},
+  :HardwareRequirement
+  {:doc "A computational resource needed to run a tool",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the hardware requirement",
+     :examples ["Minimum RAM" "GPU" "CPU cores"]},
+    :resource-type
+    {:type :hardware-resource-enum, :doc "Type of hardware resource"},
+    :minimum-value {:type :double, :doc "Minimum required value"},
+    :recommended-value {:type :double, :doc "Recommended value"},
+    :unit
+    {:type :MeasurementUnit, :doc "Unit for the requirement value"}},
+   :icon "🖥️"},
+  :AccessMode
+  {:doc "The means by which a resource is accessed",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the access mode",
+     :unique? true,
+     :examples ["REST API" "Download" "FTP"]},
+    :description
+    {:type :string, :doc "Description of the access mode"},
+    :authentication-required?
+    {:type :boolean, :doc "Whether authentication is required"}}},
+  :Ontology
+  {:doc "A formal controlled vocabulary with defined relationships",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the ontology",
+     :unique? true,
+     :examples
+     ["Gene Ontology" "Sequence Ontology" "Human Phenotype Ontology"]},
+    :acronym
+    {:type :string,
+     :doc "Common acronym",
+     :examples ["GO" "SO" "HPO"]},
+    :url {:type :string, :doc "URL of the ontology"},
+    :maintained-by
+    {:type :Organization,
+     :doc "Organization maintaining the ontology"},
+    :version {:type :string, :doc "Ontology release version"}}},
+  :ReferenceGenome
+  {:doc "A representative genome assembly used as a standard",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the reference genome assembly",
+     :unique? true,
+     :examples ["GRCh38" "GRCm39" "TAIR10"]},
+    :organism {:type :Organism, :doc "Organism the genome belongs to"},
+    :assembly-accession
+    {:type :Identifier, :doc "Assembly accession identifier"},
+    :release-date
+    {:type :instant, :doc "Date the assembly was released"},
+    :source
+    {:type :Organization,
+     :doc "Organization that produced the assembly"}},
+   :icon "🧬"},
+  :MaterialType
+  {:doc "A category of physical or biological material",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the material type",
+     :examples ["Genomic DNA" "Total RNA" "Protein lysate"]},
+    :description
+    {:type :string, :doc "Description of the material type"}}},
+  :Protein
+  {:doc "A protein molecule or product",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the protein",
+     :examples
+     ["Hemoglobin subunit beta" "Tumor protein p53" "Insulin"]},
+    :uniprot-id
+    {:type :Identifier, :doc "UniProt accession identifier"},
+    :encoded-by {:type :Gene, :doc "Gene encoding this protein"},
+    :organism {:type :Organism, :doc "Source organism"},
+    :molecular-function
+    {:type :MolecularFunction,
+     :cardinality :many,
+     :doc "Molecular functions of the protein"},
+    :sequence {:type :string, :doc "Amino acid sequence"}},
+   :icon "🧬"},
+  :Gene
+  {:doc "A unit of heredity",
+   :fields
+   {:symbol
+    {:type :string,
+     :doc "Official gene symbol",
+     :examples ["TP53" "BRCA1" "EGFR"]},
+    :name
+    {:type :string,
+     :doc "Full gene name",
+     :examples ["Tumor protein p53" "BRCA1 DNA repair associated"]},
+    :entrez-id {:type :Identifier, :doc "Entrez Gene identifier"},
+    :organism {:type :Organism, :doc "Organism the gene belongs to"},
+    :encodes
+    {:type :Protein,
+     :cardinality :many,
+     :doc "Proteins encoded by the gene"},
+    :involved-in
+    {:type :BiologicalProcess,
+     :cardinality :many,
+     :doc "Biological processes the gene is involved in"}},
+   :icon "🧬"},
+  :InputSpecification
+  {:doc "A description of required tool inputs",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the input",
+     :examples ["Reference genome" "Read file" "Configuration file"]},
+    :file-format
+    {:type :FileFormat,
+     :cardinality :many,
+     :doc "Accepted file formats"},
+    :data-type {:type :DataType, :doc "Type of data expected"},
+    :required? {:type :boolean, :doc "Whether the input is required"},
+    :description {:type :string, :doc "Description of the input"}}},
+  :ResearchDomain
+  {:doc "A field or subdiscipline of biology",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the research domain",
+     :unique? true,
+     :examples ["Genomics" "Proteomics" "Phylogenetics"]},
+    :description {:type :string, :doc "Description of the domain"},
+    :parent-domain
+    {:type :ResearchDomain, :doc "Broader parent domain"}}},
+  :MeasurementUnit
+  {:doc "A standardized unit of measurement",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the unit",
+     :unique? true,
+     :examples ["Gigabyte" "Base pair" "Second"]},
+    :symbol
+    {:type :string, :doc "Unit symbol", :examples ["GB" "bp" "s"]},
+    :quantity-kind
+    {:type :string,
+     :doc "Kind of quantity measured",
+     :examples ["Memory" "Length" "Time"]}},
+   :icon "📏"},
+  :Package
+  {:doc "A distributable software unit within a package ecosystem",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the package",
+     :examples ["samtools" "biopython" "DESeq2"]},
+    :ecosystem
+    {:type :package-ecosystem-enum,
+     :doc "Package management ecosystem"},
+    :version {:type :SoftwareVersion, :doc "Package version"},
+    :dependencies
+    {:type :Dependency,
+     :cardinality :many,
+     :doc "Package dependencies"},
+    :provides-tool
+    {:type :SoftwareTool, :doc "Tool provided by this package"},
+    :license {:type :License, :doc "Package license"}},
+   :icon "📦"},
+  :ApplicationCategory
+  {:doc "A functional classification of software",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the application category",
+     :unique? true,
+     :examples
+     ["Sequence alignment" "Variant calling" "Visualization"]},
+    :description {:type :string, :doc "Description of the category"},
+    :parent-category
+    {:type :ApplicationCategory, :doc "Broader parent category"}}},
+  :Database
+  {:doc "A structured biological data repository",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the database",
+     :unique? true,
+     :examples ["UniProt" "GenBank" "PDB"]},
+    :url {:type :string, :doc "URL of the database"},
+    :data-type
+    {:type :DataType, :cardinality :many, :doc "Types of data stored"},
+    :maintained-by
+    {:type :Organization,
+     :doc "Organization maintaining the database"},
+    :access-mode
+    {:type :AccessMode,
+     :cardinality :many,
+     :doc "Available access modes"},
+    :research-domain
+    {:type :ResearchDomain, :doc "Primary research domain"}},
+   :icon "🗃️"},
+  :BiologicalProcess
+  {:doc "A biological activity or pathway",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the biological process",
+     :examples ["DNA repair" "Apoptosis" "Cell cycle"]},
+    :go-id {:type :Identifier, :doc "Gene Ontology identifier"},
+    :description {:type :string, :doc "Description of the process"},
+    :part-of
+    {:type :BiologicalProcess,
+     :doc "Larger process this is part of"}}},
+  :ControlledVocabulary
+  {:doc "A curated set of standardized terms",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the controlled vocabulary",
+     :unique? true,
+     :examples ["MeSH" "NCIt" "EDAM"]},
+    :url {:type :string, :doc "URL of the vocabulary"},
+    :maintained-by
+    {:type :Organization, :doc "Organization maintaining it"},
+    :version {:type :string, :doc "Version of the vocabulary"}}},
+  :MolecularFunction
+  {:doc "A molecular-level biochemical activity",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the molecular function",
+     :examples
+     ["ATP binding" "DNA helicase activity" "Kinase activity"]},
+    :go-id {:type :Identifier, :doc "Gene Ontology identifier"},
+    :description {:type :string, :doc "Description of the function"}}},
+  :Identifier
+  {:doc "A persistent unique identifier such as DOI or accession",
+   :fields
+   {:value
+    {:type :string,
+     :doc "The identifier value",
+     :examples ["10.1038/nature12345" "NC_000001.11" "P04637"]},
+    :scheme
+    {:type :identifier-scheme-enum,
+     :doc "Identifier scheme or namespace"},
+    :resolver-url
+    {:type :string, :doc "URL to resolve the identifier"}},
+   :icon "🆔"},
+  :Pathway
+  {:doc "A biological pathway or interaction network",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the pathway",
+     :examples ["Glycolysis" "Citric acid cycle" "MAPK signaling"]},
+    :pathway-id
+    {:type :Identifier, :doc "Pathway database identifier"},
+    :source-database
+    {:type :Database, :doc "Database the pathway is from"},
+    :organism
+    {:type :Organism, :doc "Organism the pathway applies to"},
+    :participating-genes
+    {:type :Gene,
+     :cardinality :many,
+     :doc "Genes participating in the pathway"}}},
+  :Tissue
+  {:doc "A biological tissue type",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the tissue",
+     :examples ["Liver" "Epithelium" "Blood"]},
+    :organism {:type :Organism, :doc "Organism the tissue belongs to"},
+    :anatomical-part
+    {:type :AnatomicalPart,
+     :doc "Anatomical part the tissue belongs to"},
+    :uberon-id {:type :Identifier, :doc "UBERON ontology identifier"}},
+   :icon "🧫"},
+  :Reagent
+  {:doc "A substance used in laboratory procedures",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the reagent",
+     :examples ["Taq polymerase" "Ethanol" "SYBR Green"]},
+    :material-type {:type :MaterialType, :doc "Type of material"},
+    :vendor {:type :Organization, :doc "Supplier of the reagent"},
+    :catalog-number {:type :string, :doc "Vendor catalog number"}},
+   :icon "🧪"},
+  :SoftwareTool
+  {:doc
+   "A computational program or application used in biological research",
+   :fields
+   {:programming-language
+    {:type :ProgrammingLanguage,
+     :cardinality :many,
+     :doc "Implementation languages"},
+    :maintainer
+    {:type :Maintainer,
+     :cardinality :many,
+     :doc "Maintainers of the tool"},
+    :description {:type :string, :doc "Description of the tool"},
+    :repository {:type :Repository, :doc "Source code repository"},
+    :algorithm
+    {:type :Algorithm,
+     :cardinality :many,
+     :doc "Algorithms implemented"},
+    :license {:type :License, :doc "Software license"},
+    :homepage {:type :string, :doc "Homepage URL"},
+    :name
+    {:type :string,
+     :doc "Name of the software tool",
+     :unique? true,
+     :examples ["BWA" "GATK" "Cytoscape"]},
+    :publication
+    {:type :Publication,
+     :cardinality :many,
+     :doc "Publications describing the tool"},
+    :research-domain
+    {:type :ResearchDomain,
+     :cardinality :many,
+     :doc "Applicable research domains"},
+    :documentation
+    {:type :Documentation,
+     :cardinality :many,
+     :doc "Available documentation"},
+    :hardware-requirement
+    {:type :HardwareRequirement,
+     :cardinality :many,
+     :doc "Hardware requirements"},
+    :maturity-status {:type :MaturityStatus, :doc "Development stage"},
+    :operating-system
+    {:type :OperatingSystem,
+     :cardinality :many,
+     :doc "Supported operating systems"},
+    :output-specification
+    {:type :OutputSpecification,
+     :cardinality :many,
+     :doc "Output specifications"},
+    :input-specification
+    {:type :InputSpecification,
+     :cardinality :many,
+     :doc "Input specifications"},
+    :developer
+    {:type :Developer,
+     :cardinality :many,
+     :doc "Developers of the tool"},
+    :application-category
+    {:type :ApplicationCategory,
+     :cardinality :many,
+     :doc "Functional categories"},
+    :version
+    {:type :SoftwareVersion,
+     :cardinality :many,
+     :doc "Available versions"}},
+   :icon "🛠️"},
+  :SoftwareLibrary
+  {:doc "A reusable code package or programming library",
+   :extends :SoftwareTool,
+   :fields
+   {:api-documentation
+    {:type :Documentation, :doc "API reference documentation"},
+    :programming-language
+    {:type :ProgrammingLanguage,
+     :doc "Primary implementation language"},
+    :package
+    {:type :Package, :doc "Distributable package for the library"}}},
+  :Specimen
+  {:doc "A biological sample used in study",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name or label of the specimen",
+     :examples ["Patient-001 tumor" "Control blood sample"]},
+    :organism {:type :Organism, :doc "Source organism"},
+    :tissue {:type :Tissue, :doc "Tissue of origin"},
+    :material-type
+    {:type :MaterialType, :doc "Material type of the specimen"},
+    :collection-date {:type :instant, :doc "Date of collection"},
+    :identifier {:type :Identifier, :doc "Specimen identifier"}},
+   :icon "🧫"},
+  :Tutorial
+  {:doc "A guided learning resource for a tool",
+   :fields
+   {:title
+    {:type :string,
+     :doc "Title of the tutorial",
+     :examples
+     ["Getting Started with Bioconductor"
+      "RNA-seq analysis walkthrough"]},
+    :url {:type :string, :doc "URL of the tutorial"},
+    :describes-tool
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools covered by the tutorial"},
+    :author
+    {:type :Author,
+     :cardinality :many,
+     :doc "Authors of the tutorial"},
+    :difficulty-level
+    {:type :difficulty-level-enum, :doc "Difficulty level"}},
+   :icon "🎓"},
+  :SequencingPlatform
+  {:doc "A hardware technology for sequencing",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the sequencing platform",
+     :unique? true,
+     :examples
+     ["Illumina NovaSeq 6000"
+      "Oxford Nanopore MinION"
+      "PacBio Sequel II"]},
+    :manufacturer
+    {:type :Organization, :doc "Manufacturer of the platform"},
+    :sequencing-technology
+    {:type :sequencing-technology-enum,
+     :doc "Underlying sequencing technology"},
+    :read-type {:type :read-type-enum, :doc "Type of reads produced"},
+    :output-format
+    {:type :FileFormat,
+     :cardinality :many,
+     :doc "Output file formats"}}},
+  :Citation
+  {:doc "A formal reference to a work or resource",
+   :fields
+   {:text {:type :string, :doc "Formatted citation text"},
+    :publication {:type :Publication, :doc "Publication being cited"},
+    :doi {:type :Identifier, :doc "DOI of the cited work"},
+    :cited-tool {:type :SoftwareTool, :doc "Tool being cited"}},
+   :icon "📑"},
+  :AnalysisTask
+  {:doc "A defined computational analysis objective",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the analysis task",
+     :examples
+     ["Read alignment"
+      "Differential expression"
+      "Variant annotation"]},
+    :description {:type :string, :doc "Description of the task"},
+    :input-data-type
+    {:type :DataType, :cardinality :many, :doc "Input data types"},
+    :output-data-type
+    {:type :DataType, :cardinality :many, :doc "Output data types"},
+    :performed-by
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools that perform the task"},
+    :research-domain
+    {:type :ResearchDomain, :doc "Associated research domain"}}},
+  :Organism
+  {:doc "A living entity or species studied",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the organism",
+     :examples
+     ["Homo sapiens"
+      "Arabidopsis thaliana"
+      "Saccharomyces cerevisiae"]},
+    :common-name
+    {:type :string,
+     :doc "Common name",
+     :examples ["Human" "Thale cress" "Baker's yeast"]},
+    :taxon {:type :Taxon, :doc "Taxonomic classification"},
+    :reference-genome
+    {:type :ReferenceGenome,
+     :cardinality :many,
+     :doc "Reference genomes available"}},
+   :icon "🦠"},
+  :Dependency
+  {:doc "A required external component for software to function",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the dependency",
+     :examples ["zlib" "numpy" "Java Runtime"]},
+    :depends-on-package
+    {:type :Package, :doc "Package that satisfies the dependency"},
+    :version-constraint
+    {:type :string,
+     :doc "Version constraint expression",
+     :examples [">=1.2.0" "==3.9" "^2.0"]},
+    :optional?
+    {:type :boolean, :doc "Whether the dependency is optional"}}},
+  :Community
+  {:doc "A user or developer group around a tool",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the community",
+     :examples ["Bioconductor" "Galaxy Community" "nf-core"]},
+    :url {:type :string, :doc "Community homepage or forum URL"},
+    :associated-tool
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools associated with the community"},
+    :organization
+    {:type :Organization, :doc "Governing organization"}},
+   :icon "👥"},
+  :Workflow
+  {:doc "A defined sequence of computational steps or pipeline",
+   :fields
+   {:description {:type :string, :doc "Description of the workflow"},
+    :repository
+    {:type :Repository, :doc "Source repository for the workflow"},
+    :license {:type :License, :doc "Workflow license"},
+    :name
+    {:type :string,
+     :doc "Name of the workflow",
+     :examples ["nf-core/rnaseq" "GATK Best Practices" "sarek"]},
+    :steps
+    {:type :AnalysisTask,
+     :cardinality :many,
+     :doc "Analysis tasks comprising the workflow"},
+    :workflow-engine
+    {:type :WorkflowEngine, :doc "Engine used to run the workflow"},
+    :output-specification
+    {:type :OutputSpecification,
+     :cardinality :many,
+     :doc "Workflow outputs"},
+    :input-specification
+    {:type :InputSpecification,
+     :cardinality :many,
+     :doc "Workflow inputs"},
+    :tools-used
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools used in the workflow"}},
+   :icon "🔀"},
+  :Instrument
+  {:doc "A laboratory or measurement device",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the instrument",
+     :examples
+     ["Thermal cycler" "Mass spectrometer" "Flow cytometer"]},
+    :manufacturer
+    {:type :Organization, :doc "Manufacturer of the instrument"},
+    :model {:type :string, :doc "Model identifier"},
+    :used-in-assay
+    {:type :ExperimentalAssay,
+     :cardinality :many,
+     :doc "Assays the instrument is used in"}},
+   :icon "🔬"},
+  :SequenceType
+  {:doc "A category of biological sequence data",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the sequence type",
+     :unique? true,
+     :examples ["DNA" "RNA" "Protein"]},
+    :alphabet
+    {:type :string,
+     :doc "Character alphabet used",
+     :examples ["ACGT" "ACGU" "20 amino acids"]},
+    :description
+    {:type :string, :doc "Description of the sequence type"}}},
+  :OutputSpecification
+  {:doc "A description of produced tool outputs",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the output",
+     :examples ["Alignment file" "Variant calls" "QC report"]},
+    :file-format
+    {:type :FileFormat,
+     :cardinality :many,
+     :doc "Produced file formats"},
+    :data-type {:type :DataType, :doc "Type of data produced"},
+    :description {:type :string, :doc "Description of the output"}}},
+  :Biomolecule
+  {:doc "Any biological molecule such as DNA, RNA, metabolite",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the biomolecule",
+     :examples ["Genomic DNA" "mRNA" "Glucose"]},
+    :molecule-type
+    {:type :biomolecule-type-enum, :doc "Category of biomolecule"},
+    :sequence-type
+    {:type :SequenceType,
+     :doc "Associated sequence type if applicable"},
+    :identifier {:type :Identifier, :doc "Database identifier"}}},
+  :Publication
+  {:doc "A scholarly article describing or citing a tool",
+   :fields
+   {:title
+    {:type :string,
+     :doc "Title of the publication",
+     :examples ["The Sequence Alignment/Map format and SAMtools"]},
+    :authors
+    {:type :Author,
+     :cardinality :many,
+     :doc "Authors of the publication"},
+    :journal
+    {:type :string,
+     :doc "Journal name",
+     :examples ["Bioinformatics" "Nature Methods" "Genome Biology"]},
+    :year {:type :long, :doc "Year of publication"},
+    :doi {:type :Identifier, :doc "DOI identifier"},
+    :describes-tool
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools described in the publication"}},
+   :icon "📰"},
+  :Plugin
+  {:doc "An extension adding functionality to a host application",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the plugin",
+     :examples ["IGV GenomeSpace" "Cytoscape clusterMaker"]},
+    :host-application
+    {:type :SoftwareTool, :doc "Host application the plugin extends"},
+    :version {:type :SoftwareVersion, :doc "Plugin version"},
+    :description
+    {:type :string, :doc "Description of added functionality"},
+    :developer
+    {:type :Developer,
+     :cardinality :many,
+     :doc "Developers of the plugin"}},
+   :icon "🔌"},
+  :SoftwareSuite
+  {:doc
+   "A collection of integrated software tools distributed together",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the software suite",
+     :unique? true,
+     :examples ["SAMtools/BCFtools/HTSlib" "EMBOSS" "GATK"]},
+    :description {:type :string, :doc "Description of the suite"},
+    :tools
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools included in the suite"},
+    :version {:type :SoftwareVersion, :doc "Suite version"},
+    :license {:type :License, :doc "Suite license"},
+    :maintainer
+    {:type :Maintainer,
+     :cardinality :many,
+     :doc "Maintainers of the suite"}}},
+  :Algorithm
+  {:doc "A computational method or procedure implemented by tools",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the algorithm",
+     :examples
+     ["Smith-Waterman"
+      "Burrows-Wheeler Transform"
+      "Hidden Markov Model"]},
+    :description {:type :string, :doc "Description of the algorithm"},
+    :category
+    {:type :string,
+     :doc "Algorithm category",
+     :examples ["Dynamic programming" "Graph-based" "Probabilistic"]},
+    :statistical-method
+    {:type :StatisticalMethod,
+     :cardinality :many,
+     :doc "Associated statistical methods"},
+    :publication
+    {:type :Publication,
+     :doc "Publication describing the algorithm"}}},
+  :Parameter
+  {:doc "A configurable option controlling tool behavior",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the parameter",
+     :examples ["--threads" "-k" "minQuality"]},
+    :data-type
+    {:type :DataType, :doc "Data type of the parameter value"},
+    :default-value
+    {:type :string, :doc "Default value", :examples ["1" "20" "auto"]},
+    :description {:type :string, :doc "Description of the parameter"},
+    :required?
+    {:type :boolean, :doc "Whether the parameter is required"},
+    :unit
+    {:type :MeasurementUnit, :doc "Unit of the parameter value"}},
+   :icon "🎛️"},
+  :Developer
+  {:doc "An individual or group maintaining software",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the developer",
+     :examples ["Heng Li" "Broad Institute" "Galaxy Team"]},
+    :email {:type :string, :doc "Contact email"},
+    :affiliation {:type :Organization, :doc "Affiliated organization"},
+    :orcid {:type :Identifier, :doc "ORCID identifier"}},
+   :icon "👨‍💻"},
+  :Maintainer
+  {:doc "An entity responsible for ongoing software upkeep",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the maintainer",
+     :examples ["Bioconductor Core Team" "John Doe"]},
+    :email {:type :string, :doc "Contact email"},
+    :organization
+    {:type :Organization, :doc "Associated organization"},
+    :maintains
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools maintained"}}},
+  :Variant
+  {:doc "A genetic variation or mutation",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name or label of the variant",
+     :examples ["rs334" "BRAF V600E" "chr7:140453136A>T"]},
+    :variant-type {:type :variant-type-enum, :doc "Type of variant"},
+    :gene {:type :Gene, :doc "Gene affected by the variant"},
+    :reference-genome
+    {:type :ReferenceGenome,
+     :doc "Reference genome coordinate system"},
+    :dbsnp-id {:type :Identifier, :doc "dbSNP identifier"},
+    :clinical-significance
+    {:type :string,
+     :doc "Clinical significance",
+     :examples ["Pathogenic" "Benign" "Uncertain significance"]}}},
+  :CommandLineTool
+  {:doc "A tool operated via command-line interface",
+   :extends :SoftwareTool,
+   :fields
+   {:executable
+    {:type :string,
+     :doc "Executable command name",
+     :examples ["bwa" "samtools" "bcftools"]},
+    :parameters
+    {:type :Parameter,
+     :cardinality :many,
+     :doc "Command-line parameters"},
+    :subcommands
+    {:type :string,
+     :cardinality :many,
+     :doc "Available subcommands",
+     :examples ["mem" "index" "view"]}},
+   :icon "⌨️"},
+  :OperatingSystem
+  {:doc "A platform on which software runs",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the operating system",
+     :unique? true,
+     :examples ["Linux" "macOS" "Windows"]},
+    :family {:type :os-family-enum, :doc "OS family"},
+    :version
+    {:type :string,
+     :doc "OS version",
+     :examples ["Ubuntu 22.04" "Ventura 13" "Windows 11"]}}},
+  :TopicClassification
+  {:doc "A subject-area tag categorizing a resource",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the topic",
+     :examples
+     ["Sequence analysis" "Structural biology" "Population genetics"]},
+    :ontology {:type :Ontology, :doc "Source ontology (e.g. EDAM)"},
+    :term-id {:type :Identifier, :doc "Ontology term identifier"}}},
+  :Author
+  {:doc "A person who created a resource",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Full name of the author",
+     :examples ["Jane Smith" "Heng Li" "Aaron Quinlan"]},
+    :orcid {:type :Identifier, :doc "ORCID identifier"},
+    :affiliation {:type :Organization, :doc "Affiliated organization"},
+    :email {:type :string, :doc "Contact email"}},
+   :icon "✍️"},
+  :Documentation
+  {:doc "Instructional or reference material for a tool",
+   :fields
+   {:title
+    {:type :string,
+     :doc "Title of the documentation",
+     :examples ["SAMtools Manual" "GATK User Guide"]},
+    :url {:type :string, :doc "URL of the documentation"},
+    :documentation-type
+    {:type :documentation-type-enum, :doc "Type of documentation"},
+    :describes-tool {:type :SoftwareTool, :doc "Tool documented"},
+    :format {:type :FileFormat, :doc "Format of the documentation"}},
+   :icon "📚"},
+  :Benchmark
+  {:doc "A standardized evaluation of tool performance",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the benchmark",
+     :examples ["GA4GH Benchmarking" "Assemblathon" "CASP"]},
+    :description {:type :string, :doc "Description of the benchmark"},
+    :evaluated-tool
+    {:type :SoftwareTool, :cardinality :many, :doc "Tools evaluated"},
+    :dataset
+    {:type :Dataset,
+     :cardinality :many,
+     :doc "Datasets used in the benchmark"},
+    :metrics
+    {:type :QualityMetric,
+     :cardinality :many,
+     :doc "Metrics measured"},
+    :publication
+    {:type :Publication, :doc "Publication reporting the benchmark"}}},
+  :WebService
+  {:doc "A tool accessible via web interface or remote API",
+   :extends :SoftwareTool,
+   :fields
+   {:endpoint-url {:type :string, :doc "Service endpoint URL"},
+    :api-type {:type :api-type-enum, :doc "Type of API offered"},
+    :access-mode
+    {:type :AccessMode,
+     :cardinality :many,
+     :doc "Access modes supported"},
+    :rate-limit
+    {:type :string,
+     :doc "Rate limiting policy",
+     :examples ["100 requests/hour" "Unlimited"]}},
+   :icon "🌐"},
+  :WorkflowEngine
+  {:doc "Software that executes and manages workflows",
+   :extends :SoftwareTool,
+   :fields
+   {:workflow-language
+    {:type :string,
+     :doc "Workflow definition language supported",
+     :examples ["Nextflow" "CWL" "WDL"]},
+    :supported-environment
+    {:type :ComputingEnvironment,
+     :cardinality :many,
+     :doc "Supported computing environments"},
+    :executes-workflow
+    {:type :Workflow,
+     :cardinality :many,
+     :doc "Workflows that can be executed"}}},
+  :SoftwareVersion
+  {:doc "A specific release of a software tool",
+   :fields
+   {:version-number
+    {:type :string,
+     :doc "Version number",
+     :examples ["1.15.1" "4.3.0.0" "v2.0.1"]},
+    :release-date {:type :instant, :doc "Release date"},
+    :changelog {:type :string, :doc "Summary of changes"},
+    :maturity-status
+    {:type :MaturityStatus, :doc "Maturity of this version"},
+    :of-tool
+    {:type :SoftwareTool, :doc "Tool this version belongs to"}}},
+  :Organization
+  {:doc "An institution, lab, or company",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the organization",
+     :unique? true,
+     :examples ["Broad Institute" "EMBL-EBI" "Illumina Inc."]},
+    :organization-type
+    {:type :organization-type-enum, :doc "Type of organization"},
+    :url {:type :string, :doc "Organization website"},
+    :country
+    {:type :string,
+     :doc "Country of operation",
+     :examples ["United States" "United Kingdom" "Germany"]},
+    :ror-id
+    {:type :Identifier,
+     :doc "Research Organization Registry identifier"}},
+   :icon "🏢"},
+  :Repository
+  {:doc "A version-controlled source code location",
+   :fields
+   {:url
+    {:type :string,
+     :doc "Repository URL",
+     :examples ["https://github.com/samtools/samtools"]},
+    :hosting-platform
+    {:type :repo-hosting-enum, :doc "Code hosting platform"},
+    :default-branch
+    {:type :string,
+     :doc "Default branch name",
+     :examples ["main" "master" "develop"]},
+    :license {:type :License, :doc "Repository license"},
+    :contains-tool
+    {:type :SoftwareTool,
+     :cardinality :many,
+     :doc "Tools hosted in the repository"}},
+   :icon "📂"},
+  :License
+  {:doc "A legal term governing software use and distribution",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the license",
+     :unique? true,
+     :examples ["MIT License" "GNU GPL v3" "Apache License 2.0"]},
+    :spdx-id
+    {:type :string,
+     :doc "SPDX license identifier",
+     :examples ["MIT" "GPL-3.0" "Apache-2.0"]},
+    :url {:type :string, :doc "URL to license text"},
+    :osi-approved? {:type :boolean, :doc "Whether OSI-approved"},
+    :open-source?
+    {:type :boolean, :doc "Whether the license is open source"}},
+   :icon "📜"},
+  :AnatomicalPart
+  {:doc "A body part, organ, or structure",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the anatomical part",
+     :examples ["Heart" "Brain" "Kidney"]},
+    :organism {:type :Organism, :doc "Organism the part belongs to"},
+    :uberon-id {:type :Identifier, :doc "UBERON ontology identifier"},
+    :part-of
+    {:type :AnatomicalPart,
+     :doc "Larger anatomical structure this is part of"}}},
+  :CellType
+  {:doc "A category of biological cell",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the cell type",
+     :examples ["T lymphocyte" "Neuron" "Hepatocyte"]},
+    :cell-ontology-id
+    {:type :Identifier, :doc "Cell Ontology (CL) identifier"},
+    :tissue {:type :Tissue, :doc "Tissue the cell type is found in"},
+    :organism
+    {:type :Organism, :doc "Organism the cell type belongs to"}},
+   :icon "🔬"},
+  :StatisticalMethod
+  {:doc "A statistical technique applied in analysis",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the statistical method",
+     :examples
+     ["Negative binomial regression"
+      "Benjamini-Hochberg correction"
+      "Principal component analysis"]},
+    :description {:type :string, :doc "Description of the method"},
+    :category
+    {:type :string,
+     :doc "Category of method",
+     :examples
+     ["Regression"
+      "Multiple testing correction"
+      "Dimensionality reduction"]},
+    :publication
+    {:type :Publication, :doc "Publication describing the method"}}},
+  :CellLine
+  {:doc "An established culture of cells used in research",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the cell line",
+     :examples ["HeLa" "HEK293" "K562"]},
+    :organism {:type :Organism, :doc "Source organism"},
+    :tissue {:type :Tissue, :doc "Tissue of origin"},
+    :cell-type {:type :CellType, :doc "Cell type of the cell line"},
+    :cellosaurus-id
+    {:type :Identifier, :doc "Cellosaurus identifier"}},
+   :icon "🧫"},
+  :ProgrammingLanguage
+  {:doc "A language used to implement software",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the programming language",
+     :unique? true,
+     :examples ["Python" "R" "C++"]},
+    :version
+    {:type :string,
+     :doc "Language version",
+     :examples ["3.11" "4.3" "C++17"]},
+    :paradigm
+    {:type :string,
+     :cardinality :many,
+     :doc "Programming paradigms",
+     :examples ["Object-oriented" "Functional" "Imperative"]}},
+   :icon "💻"},
+  :ComputingEnvironment
+  {:doc "A runtime context such as cluster, cloud, or container",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the computing environment",
+     :examples ["HPC cluster" "AWS Cloud" "Local workstation"]},
+    :environment-type
+    {:type :environment-type-enum,
+     :doc "Type of computing environment"},
+    :scheduler
+    {:type :string,
+     :doc "Job scheduler used",
+     :examples ["SLURM" "SGE" "Kubernetes"]},
+    :container-support
+    {:type :Container,
+     :cardinality :many,
+     :doc "Supported container technologies"}},
+   :icon "☁️"},
+  :DataStandard
+  {:doc "A community-agreed specification for data representation",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the data standard",
+     :unique? true,
+     :examples ["MIAME" "MINSEQE" "GA4GH VRS"]},
+    :description {:type :string, :doc "Description of the standard"},
+    :maintained-by
+    {:type :Organization,
+     :doc "Organization maintaining the standard"},
+    :url {:type :string, :doc "URL to the specification"},
+    :version {:type :string, :doc "Standard version"}}},
+  :Dataset
+  {:doc "A specific collection of biological data",
+   :fields
+   {:description {:type :string, :doc "Description of the dataset"},
+    :organism
+    {:type :Organism,
+     :cardinality :many,
+     :doc "Organisms represented"},
+    :data-type
+    {:type :DataType,
+     :cardinality :many,
+     :doc "Types of data in the dataset"},
+    :repository
+    {:type :DataRepository, :doc "Repository hosting the dataset"},
+    :license {:type :License, :doc "Dataset usage license"},
+    :name
+    {:type :string,
+     :doc "Name of the dataset",
+     :examples ["1000 Genomes Phase 3" "TCGA-BRCA" "ENCODE RNA-seq"]},
+    :accession
+    {:type :Identifier, :doc "Dataset accession identifier"},
+    :file-format
+    {:type :FileFormat, :cardinality :many, :doc "File formats used"},
+    :assay
+    {:type :ExperimentalAssay,
+     :cardinality :many,
+     :doc "Assays used to generate the data"}},
+   :icon "📊"},
+  :DataType
+  {:doc "A category of data value or structure",
+   :fields
+   {:name
+    {:type :string,
+     :doc "Name of the data type",
+     :unique? true,
+     :examples
+     ["Sequence read" "Expression matrix" "Phylogenetic tree"]},
+    :description {:type :string, :doc "Description of the data type"},
+    :sequence-type
+    {:type :SequenceType,
+     :doc "Associated sequence type if applicable"},
+    :edam-id
+    {:type :Identifier, :doc "EDAM ontology data identifier"}}}},
+ :enums
+ {:container-runtime-enum
+  {:doc "Container runtime technologies",
+   :values
+   {:docker "Docker",
+    :singularity "Singularity/Apptainer",
+    :podman "Podman",
+    :charliecloud "Charliecloud"}},
+  :sequencing-technology-enum
+  {:doc "Underlying sequencing technologies",
+   :values
+   {:sequencing-by-synthesis "Sequencing by synthesis",
+    :nanopore "Nanopore sequencing",
+    :smrt "Single-molecule real-time (SMRT)",
+    :ion-semiconductor "Ion semiconductor",
+    :sanger "Sanger sequencing"}},
+  :hardware-resource-enum
+  {:doc "Types of hardware resources",
+   :values
+   {:cpu "CPU",
+    :memory "Memory/RAM",
+    :gpu "GPU",
+    :storage "Disk storage",
+    :network "Network bandwidth"}},
+  :documentation-type-enum
+  {:doc "Types of documentation",
+   :values
+   {:manual "User manual",
+    :api-reference "API reference",
+    :readme "README",
+    :man-page "Man page",
+    :wiki "Wiki",
+    :faq "FAQ"}},
+  :api-type-enum
+  {:doc "Types of web APIs",
+   :values
+   {:rest "REST",
+    :graphql "GraphQL",
+    :soap "SOAP",
+    :grpc "gRPC",
+    :websocket "WebSocket"}},
+  :identifier-scheme-enum
+  {:doc "Identifier schemes and namespaces",
+   :values
+   {:doi "DOI",
+    :orcid "ORCID",
+    :ncbi-accession "NCBI Accession",
+    :ensembl "Ensembl ID",
+    :uniprot "UniProt Accession",
+    :pmid "PubMed ID",
+    :ror "ROR ID",
+    :rrid "Research Resource Identifier"}},
+  :environment-type-enum
+  {:doc "Types of computing environments",
+   :values
+   {:local "Local workstation",
+    :hpc "HPC cluster",
+    :cloud "Cloud",
+    :container "Container",
+    :grid "Grid computing"}},
+  :variant-type-enum
+  {:doc "Types of genetic variants",
+   :values
+   {:snv "Single nucleotide variant",
+    :indel "Insertion/deletion",
+    :cnv "Copy number variant",
+    :sv "Structural variant",
+    :mnv "Multi-nucleotide variant"}},
+  :biomolecule-type-enum
+  {:doc "Categories of biomolecules",
+   :values
+   {:dna "DNA",
+    :rna "RNA",
+    :protein "Protein",
+    :metabolite "Metabolite",
+    :lipid "Lipid",
+    :carbohydrate "Carbohydrate"}},
+  :os-family-enum
+  {:doc "Operating system families",
+   :values
+   {:unix "Unix-like",
+    :linux "Linux",
+    :macos "macOS",
+    :windows "Windows"}},
+  :difficulty-level-enum
+  {:doc "Difficulty levels for learning resources",
+   :values
+   {:beginner "Beginner",
+    :intermediate "Intermediate",
+    :advanced "Advanced"}},
+  :package-ecosystem-enum
+  {:doc "Software package ecosystems",
+   :values
+   {:bioconda "Bioconda",
+    :pypi "PyPI",
+    :cran "CRAN",
+    :bioconductor "Bioconductor",
+    :npm "npm",
+    :cargo "Cargo",
+    :apt "APT",
+    :homebrew "Homebrew"}},
+  :read-type-enum
+  {:doc "Types of sequencing reads",
+   :values
+   {:single-end "Single-end short reads",
+    :paired-end "Paired-end short reads",
+    :long-read "Long reads",
+    :linked-read "Linked reads"}},
+  :repo-hosting-enum
+  {:doc "Code hosting platforms",
+   :values
+   {:github "GitHub",
+    :gitlab "GitLab",
+    :bitbucket "Bitbucket",
+    :sourceforge "SourceForge",
+    :self-hosted "Self-hosted"}},
+  :taxonomic-rank-enum
+  {:doc "Taxonomic ranks",
+   :values
+   {:kingdom "Kingdom",
+    :phylum "Phylum",
+    :family "Family",
+    :species "Species",
+    :genus "Genus",
+    :class "Class",
+    :order "Order",
+    :strain "Strain",
+    :domain "Domain"}},
+  :organization-type-enum
+  {:doc "Types of organizations",
+   :values
+   {:academic "Academic institution",
+    :research-institute "Research institute",
+    :company "Company",
+    :government "Government agency",
+    :consortium "Consortium",
+    :nonprofit "Non-profit"}}}}

@@ -1,12 +1,14 @@
 (ns hyperphor.alzabo.core
   (:require [hyperphor.alzabo.import.candel :as candel]
+            [hyperphor.alzabo.import.linkml :as linkml]
+            [hyperphor.alzabo.import.owl :as owl]
             [hyperphor.alzabo.schema :as schema]
             [hyperphor.alzabo.config :as config]
             [hyperphor.alzabo.html :as html]
             [hyperphor.alzabo.output :as output]
             [hyperphor.alzabo.export.datomic :as datomic]
             [hyperphor.alzabo.datagen :as datagen]
-            [hyperphor.alzabo.schema-gen-llm :as sgl]
+            [hyperphor.alzabo.generate.schema-gen :as sg]
             [hyperphor.multitool.core :as u]
             [hyperphor.multitool.cljcore :as ju]
             [me.raynes.fs :as fs]
@@ -26,7 +28,10 @@
 (defn- schema
   [schema-file]
   (let [schema-file (or schema-file (config/realize-path (config/config :source)))
-        schema (schema/read-schema schema-file)]
+        schema (condp re-find (str schema-file)
+                 #"\.ya?ml$" (linkml/linkml->alzabo schema-file)
+                 #"\.ofn$" (owl/owl->alzabo schema-file)
+                 (schema/read-schema schema-file))]
     (config/set! :version (:version schema)) ;?
     schema))
 
@@ -40,8 +45,8 @@
   (browse-file (config/output-path "index.html")))
 
 (defn write-alzabo
-  [schema]
-  (output/write-schema schema (config/output-path "alzabo-schema.edn"))) 
+  [schema ]
+  (output/write-schema schema (config/output-path "alzabo-schema.edn")))
 
 (defmethod do-command :documentation
   [_ {:keys [schema-file]}]
@@ -53,6 +58,20 @@
         (html/schema->html schema output-path))
       (let [schema (schema schema-file)]
         (html/schema->html schema output-path)))))
+
+;;; New command structure, only partly built out
+(defmulti do-command-new (fn [command args] (keyword command)))
+
+(defn output-file
+  [output-path file]
+  (str (fs/file output-path file)))
+
+(defmethod do-command-new :documentation
+  [_ [schema-input-path & args]]
+  (let [schema (schema/read-schema schema-input-path)
+        output-path (ju/temp-dir-path)]                ;TODO
+    (html/schema->html schema output-path)
+    (browse-file (output-file output-path "index.html"))))
 
 (defmethod do-command :datomic
   [_ _]
@@ -107,15 +126,19 @@
   (main-guts config command)
   )
 
+(defn main-new
+  [command & args]
+  (config/set-config! {})
+  (do-command-new command args)
+  )
+
 ;;; Build and show schema doc
 (defn demo
   [schema-file sname]
   (let [output-dir (u/tx "resources/public/schema/{{sname}}/")
         base (ju/wd)
         config {:source schema-file
-                :output-path output-dir
-                :edge-labels? true
-                }]
+                :output-path output-dir}]
     (config/set-config! config)
     (do-command :documentation {:schema-file schema-file})
     (ju/open-url (u/tx "file://{{base}}/{{output-dir}}index.html"))))
@@ -123,7 +146,7 @@
 ;;; Generaste a schema from a domain description (and display it)
 (defn full-demo
   [domain & [extra]]
-  (let [schema (sgl/sgen domain extra)
+  (let [schema (sg/sgen domain :extra (or extra ""))
         schema-file (u/tx "resources/generated/{{domain}}.edn")]
     (output/write-schema schema schema-file)
     (demo schema-file domain))) 

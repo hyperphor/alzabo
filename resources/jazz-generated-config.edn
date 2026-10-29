@@ -1,0 +1,2 @@
+{:source "jazz-generated-schema.edn"
+ :output-path "output/schema/jazz-generated/"}
