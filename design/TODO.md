@@ -1,14 +1,16 @@
-# TODO steal BK layout
+# interactivity revamp
+## Search widget should be on all pages, not just main schema
+## Jeff: search should highlight node in graph
+## graph and the kind list should mutually highlight
+## bk: hover on node highlights  relations
+## want some single-page mode where graph click shows kind info in a pane, rather than seprate page.
 
-# DONE (pending review) Turtle input
-Added import/turtle.clj (ttl->schema, convert) via Jena (:provided dep); test fixture test/resources/turtle/bible-mini.ttl.
-bible-ontology.ttl was not found anywhere on this machine; hand-written mini Bible ontology used instead.
-bible-ontology.ttl as sample, looks about right size
 
-Hyperphor era TODO
 
 # alternatices to graphivz
 https://mermaid.ai
+Wait this is a while AI diagram generator, even does ontologies (as hierarchies, but presumably easy enough to extend) https://mermaid.ai/app/projects/1aef4032-230e-43a1-b058-888707833e6b/diagrams/2fdc71b9-a027-4a9a-9bfd-8088c8d9671e/version/v0.1/edit
+Weird their graphics seems very capable but doesn't include any examples of arbitrary graphs
 
 
 
@@ -33,14 +35,7 @@ Root cause: schema/inverse-fields reduced over the whole schema map instead
 of (:kinds schema), so it was structurally empty for any real schema.
 One-line fix in schema.cljc, with a regression test.
 
-# DONE (pending review) IDEA schema-gen should add icons
+# TODO enum page should have back references
 
-Added `add-icons` in schema_gen_llm.clj: a standalone step (not wired into
-sgen) that asks the LLM for a conservative {kind icon} map (skipping kinds
-that already have one) and merges it in with plain Clojure, avoiding
-add-doc's known "incomplete EDN" failure mode. Verified live against
-jazz.edn — iconed 6/17 kinds, left the rest alone. Also surfaced (but did
-not fix) pre-existing bugs in this file: sgen/add-doc/improve-doc's
-llm/complete calls are broken against the current ellum API (missing
-:provider, wrong response key) and can't currently be invoked at all.
-
+# TODO breakout ui into separate project
+Maybe, only if library wants to be used wthout the UI dependencies. I

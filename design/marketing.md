@@ -8,13 +8,7 @@ GraphQL Voyager – kind of puts me to shame
 https://graphql-kit.com/graphql-voyager/
 
 
-* For CANDEL blurb
 
-
-https://www.parkerici.org/research-project/candel-data-analysis-platform/
-
-
-* Library release
 
 
 
