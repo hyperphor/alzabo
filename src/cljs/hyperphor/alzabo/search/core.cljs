@@ -207,6 +207,11 @@
     (when (or (get-in schema [:kinds k]) (get-in schema [:enums k]))
       k)))
 
+(defn- plain-click?
+  "True unless a modifier or non-primary button asks for the browser's own handling (e.g. new tab)."
+  [e]
+  (not (or (.-metaKey e) (.-ctrlKey e) (.-shiftKey e) (.-altKey e) (pos? (.-button e)))))
+
 (defn- install-index!
   "Wire the graph and kind lists on the index page to re-frame: hover highlighting, hash-routed clicks."
   []
@@ -223,7 +228,7 @@
       (.addEventListener svg "mouseleave" #(hover! nil))
       (.addEventListener svg "click"
                          (fn [e]
-                           (when-let [kind (graph/element-kind (.-target e))]
+                           (when-let [kind (and (plain-click? e) (graph/element-kind (.-target e)))]
                              (.preventDefault e)
                              (navigate! kind)))))
     (when lists
@@ -235,7 +240,7 @@
       (.addEventListener lists "mouseleave" #(hover! nil))
       (.addEventListener lists "click"
                          (fn [e]
-                           (when-let [a (.closest (.-target e) "a.kind[data-kind]")]
+                           (when-let [a (and (plain-click? e) (.closest (.-target e) "a.kind[data-kind]"))]
                              (.preventDefault e)
                              (navigate! (keyword (.getAttribute a "data-kind")))))))
     (.addEventListener js/window "hashchange" route!)
