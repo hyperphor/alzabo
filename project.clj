@@ -12,6 +12,7 @@
                  [environ "1.2.0"]
                  [camel-snake-kebab "0.4.3"]
                  [inflections "0.15.0"]
+                 [hiccup "2.0.0"]
                  [aero "1.1.6"]
 
                  ;; Clojure
@@ -99,7 +100,7 @@
                        :uberjar {:source-paths ["src/clj" "src/cljs" "src/cljc" "env/prod/cljs"]
                                  :compiler     {:output-dir "resources/public/jsu"
                                                 :output-to  "resources/public/jsu/client.js"
-                                                :optimizations :advanced ;not working AFICT
+                                                :optimizations :advanced
                                                 }}}} 
 
   :figwheel {

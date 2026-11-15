@@ -95,3 +95,101 @@ div, h1, input {
   text-decoration: none;
   font-weight: 600;
 }
+
+.header h1 a { color: inherit; text-decoration: none; }
+
+.nowrap { white-space: nowrap; }
+.az-icon { font-size: 1.5em; margin-right: 0.2em; }
+.az-extends {
+  margin: 1em 0;
+  padding: 0.5em;
+  background-color: #f5f5f5;
+  border-left: 3px solid #4CAF50;
+}
+.category-header { padding-left: 6px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0; }
+.legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.legend-swatch {
+  display: inline-block; width: 14px; height: 14px;
+  border: 1px solid #888; border-radius: 3px;
+}
+
+/* Index: graph beside a side pane (kind lists, or details of the selected kind) */
+.az-index {
+  display: flex;
+  gap: 12px;
+  padding: 0 12px;
+  height: calc(100vh - 90px);
+  min-height: 400px;
+}
+.az-graph-pane {
+  flex: 3 1 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.az-graph {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+#az-graph {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  user-select: none;
+}
+#az-graph.az-panning { cursor: grabbing; }
+.az-side {
+  flex: 2 1 0;
+  min-width: 320px;
+  overflow-y: auto;
+}
+.az-side .container { margin: 0; padding: 0 4px; }
+.az-side.az-has-detail .az-lists { display: none; }
+.az-explanation, .az-side .explanation { float: none; width: auto; }
+
+.az-zoom {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+}
+.az-zoom button {
+  width: 28px; height: 28px;
+  border: 1px solid #bbb; border-radius: 4px;
+  background: rgba(255,255,255,0.9);
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .az-index { flex-direction: column; height: auto; }
+  .az-graph { height: 70vh; flex: none; }
+  .az-side { overflow: visible; }
+}
+
+/* Highlighting, toggled by hyperphor.alzabo.search.graph/highlight! */
+#az-graph g.node, #az-graph g.edge { transition: opacity 0.15s; }
+#az-graph.az-dim g.node:not(.hl),
+#az-graph.az-dim g.edge:not(.hl) { opacity: 0.2; }
+#az-graph g.edge.hl path { stroke-width: 2.5; }
+#az-graph g.node.az-center path,
+#az-graph g.node.az-selected path { stroke-width: 3; stroke: #d35400; }
+tr.hl > * { background-color: #fdf2e9; }
+tr.az-center > * { background-color: #fad7a0; }
+
+.popup .az-cursor { background-color: rgba(250,215,160,0.9); }
+.az-search .popup { z-index: 10; }
+.container.az-page { width: auto; }
+.az-side { overflow-x: hidden; }
+/* Wide field tables scroll within the pane; docs wrap at a readable width */
+.az-side .az-page table { display: block; overflow-x: auto; }
+.az-side .az-page td > span:not(.nowrap) { display: inline-block; min-width: 14em; max-width: 28em; }
+.az-side .kind_doc, .az-side td > span:not(.nowrap), .az-lists td { overflow-wrap: break-word; }
