@@ -91,7 +91,7 @@ div, h1, input {
   padding: 10px;
 }
 
-.kind {
+a.kind {
   text-decoration: none;
   font-weight: 600;
 }

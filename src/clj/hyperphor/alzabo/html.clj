@@ -10,7 +10,8 @@
             [clojure.pprint :as pp]
             [me.raynes.fs :as fs]
             [inflections.core :as inflect]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.java.shell :as shell]))
 
 ;;; Rendering options that used to live in config; now read from the schema
 ;;; itself (with these as fallback defaults) since they're presentation
@@ -28,6 +29,10 @@
             :taxonomy? false
             ;; Group each category's kinds into a labeled Graphviz cluster (needs 2+ categories in use)
             :clusters? false
+            ;; Node labels longer than this split over two lines at a word boundary (nil: never); narrows the graph
+            :label-wrap 14
+            ;; Run Graphviz unflatten with this -l level to stagger wide ranks of leaves (nil: don't)
+            :unflatten 4
             }})
 
 (defn- with-graph-defaults
@@ -181,12 +186,26 @@
                [(get pos category Integer/MAX_VALUE) (name kind)])
              kinds)))
 
+(defn- wrap-label
+  "`s` split over two lines at the camelCase or -_ boundary that best balances them, if longer than `n`."
+  [s n]
+  (let [breaks (when (and n (> (count s) n))
+                 (for [i (range 1 (count s))
+                       :let [a (.charAt s (dec i)) b (.charAt s i)]
+                       :when (or (#{\- \_ \space} a)
+                                 (and (Character/isLowerCase a) (Character/isUpperCase b)))]
+                   i))]
+    (if (seq breaks)
+      (let [i (apply min-key #(max % (- (count s) %)) breaks)]
+        (str (s/trimr (subs s 0 i)) "\n" (subs s i)))
+      s)))
+
 (defn- graph-spec
   "Build a hyperphor.multitool.graph spec (default attrs plus node and edge lists) for `schema`.
   Nodes and edges carry the DOM ids and classes of hyperphor.alzabo.render."
   [schema]
   (let [{:keys [kinds categories render]} (with-graph-defaults schema)
-        {:keys [orientation width height edge-labels? xlabels? taxonomy? graph-attrs node-attrs edge-attrs]} render
+        {:keys [orientation width height edge-labels? xlabels? taxonomy? graph-attrs node-attrs edge-attrs label-wrap]} render
         clean (fn [kind] (s/replace (name kind) \- \_))]
     {:name "schema"
      :graph-attrs (merge {:rankdir (case orientation
@@ -202,7 +221,7 @@
                (merge {:URL (kind-url kind)
                        :id (render/node-id kind)
                        :class (str "kind " (render/category-class category))
-                       :label (if icon (str icon " " (name kind)) (name kind))
+                       :label (str (when icon (str icon " ")) (wrap-label (name kind) label-wrap))
                        :tooltip (or doc (name kind))
                        :fillcolor (get-in categories [category :color])}
                       (get-in categories [category :node-attrs])
@@ -275,12 +294,22 @@
                              (s/join " " (map #(str (pr-str %) ";") nodes)))))
            (subs dot close)))))
 
+;;; schema.dot is written before unflattening, which reformats the source
+(defn- unflatten
+  "`dot` passed through Graphviz unflatten -f -l `levels`; unchanged if `levels` is nil or unflatten fails."
+  [dot levels]
+  (if levels
+    (let [{:keys [exit out]} (try (shell/sh "unflatten" "-f" "-l" (str levels) :in dot)
+                                  (catch java.io.IOException _ nil))]
+      (if (= exit 0) out dot))
+    dot))
+
 ;;; Requires installation of graphviz ('brew install graphviz' on Mac)
 (defn- write-graphviz
   "Write `dot-file` and <dot-file>.svg for `schema`; returns the SVG."
   [schema dot-file]
   (let [dot (add-clusters (graph/spec->dot (graph-spec schema)) (cluster-specs schema))
-        svg (graph/dot->format dot "svg")]
+        svg (graph/dot->format (unflatten dot (get-in (with-graph-defaults schema) [:render :unflatten])) "svg")]
     (println "Writing " dot-file)
     (spit dot-file dot)
     (spit (str dot-file ".svg") svg)
