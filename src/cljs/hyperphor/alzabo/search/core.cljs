@@ -49,7 +49,9 @@
        (.add (.-classList side) "az-has-detail")
        (.remove (.-classList side) "az-has-detail"))
      (set! (.-scrollTop side) 0))
-   (when kind (graph/reveal! kind))))
+   (when kind
+     (graph/set-side-collapsed! false)
+     (graph/reveal! kind))))
 
 (rf/reg-event-db
  :initialize
@@ -224,6 +226,7 @@
         route! #(rf/dispatch [:select (hash-kind @(rf/subscribe [:schema]))])]
     (when svg
       (graph/install-pan-zoom! svg)
+      (graph/install-side-toggle!)
       (.addEventListener svg "mouseover" #(hover! (graph/element-kind (.-target %))))
       (.addEventListener svg "mouseleave" #(hover! nil))
       (.addEventListener svg "click"

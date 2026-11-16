@@ -134,3 +134,29 @@
                            (.preventDefault e)
                            (.stopPropagation e)))
                        true)))
+
+;;; Collapsible side pane; state kept in localStorage
+
+(def ^:private collapsed-key "alzabo.side-collapsed")
+
+(defn set-side-collapsed!
+  [collapsed?]
+  (when-let [index (.querySelector js/document ".az-index")]
+    (if collapsed?
+      (.add (.-classList index) "az-collapsed")
+      (.remove (.-classList index) "az-collapsed"))
+    (when-let [b (by-id "az-side-toggle")]
+      (set! (.-textContent b) (if collapsed? "«" "»"))
+      (set! (.-title b) (if collapsed? "Show side panel" "Hide side panel")))
+    (try (.setItem js/localStorage collapsed-key (str collapsed?)) (catch :default _ nil))))
+
+(defn install-side-toggle!
+  "Add a show/hide button for the side pane to the graph controls, restoring the saved state."
+  []
+  (when-let [controls (.querySelector js/document ".az-zoom")]
+    (let [b (.createElement js/document "button")]
+      (set! (.-id b) "az-side-toggle")
+      (.addEventListener b "click"
+                         #(set-side-collapsed! (not (.contains (.-classList (.querySelector js/document ".az-index")) "az-collapsed"))))
+      (.appendChild controls b)
+      (set-side-collapsed! (= "true" (try (.getItem js/localStorage collapsed-key) (catch :default _ nil)))))))

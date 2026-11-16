@@ -193,3 +193,4 @@ tr.az-center > * { background-color: #fad7a0; }
 .az-side .az-page table { display: block; overflow-x: auto; }
 .az-side .az-page td > span:not(.nowrap) { display: inline-block; min-width: 14em; max-width: 28em; }
 .az-side .kind_doc, .az-side td > span:not(.nowrap), .az-lists td { overflow-wrap: break-word; }
+.az-index.az-collapsed .az-side { display: none; }
