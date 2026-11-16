@@ -151,12 +151,15 @@
     (try (.setItem js/localStorage collapsed-key (str collapsed?)) (catch :default _ nil))))
 
 (defn install-side-toggle!
-  "Add a show/hide button for the side pane to the graph controls, restoring the saved state."
+  "Add a divider with a show/hide button for the side pane, restoring the saved state."
   []
-  (when-let [controls (.querySelector js/document ".az-zoom")]
-    (let [b (.createElement js/document "button")]
+  (when-let [side (.querySelector js/document ".az-side")]
+    (let [divider (.createElement js/document "div")
+          b (.createElement js/document "button")]
+      (set! (.-className divider) "az-divider")
       (set! (.-id b) "az-side-toggle")
       (.addEventListener b "click"
                          #(set-side-collapsed! (not (.contains (.-classList (.querySelector js/document ".az-index")) "az-collapsed"))))
-      (.appendChild controls b)
+      (.appendChild divider b)
+      (.insertBefore (.-parentNode side) divider side)
       (set-side-collapsed! (= "true" (try (.getItem js/localStorage collapsed-key) (catch :default _ nil)))))))

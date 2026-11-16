@@ -194,3 +194,29 @@ tr.az-center > * { background-color: #fad7a0; }
 .az-side .az-page td > span:not(.nowrap) { display: inline-block; min-width: 14em; max-width: 28em; }
 .az-side .kind_doc, .az-side td > span:not(.nowrap), .az-lists td { overflow-wrap: break-word; }
 .az-index.az-collapsed .az-side { display: none; }
+
+/* Divider between graph and side pane, holding the collapse toggle */
+.az-index { gap: 0; }
+.az-graph-pane { margin-right: 4px; }
+.az-divider {
+  flex: none;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  border-left: 1px solid #ddd;
+  margin-right: 8px;
+}
+.az-index.az-collapsed .az-divider { margin-right: 0; }
+.az-divider button {
+  margin-top: 4px;
+  width: 18px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: #f2f2f2;
+  font-size: 16px;
+  line-height: 1;
+}
+.az-divider button:hover { background: #e0e0e0; }
+@media (max-width: 900px) { .az-divider { display: none; } }

@@ -226,7 +226,6 @@
         route! #(rf/dispatch [:select (hash-kind @(rf/subscribe [:schema]))])]
     (when svg
       (graph/install-pan-zoom! svg)
-      (graph/install-side-toggle!)
       (.addEventListener svg "mouseover" #(hover! (graph/element-kind (.-target %))))
       (.addEventListener svg "mouseleave" #(hover! nil))
       (.addEventListener svg "click"
@@ -234,6 +233,7 @@
                            (when-let [kind (and (plain-click? e) (graph/element-kind (.-target e)))]
                              (.preventDefault e)
                              (navigate! kind)))))
+    (graph/install-side-toggle!)
     (when lists
       (.addEventListener lists "mouseover"
                          (fn [e]
