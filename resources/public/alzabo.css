@@ -219,4 +219,9 @@ tr.az-center > * { background-color: #fad7a0; }
   line-height: 1;
 }
 .az-divider button:hover { background: #e0e0e0; }
+.az-divider { cursor: col-resize; touch-action: none; }
+.az-divider:hover, .az-divider.az-dragging { border-left-color: #888; background: #f5f5f5; }
+.az-divider button { cursor: pointer; }
+.az-index.az-collapsed .az-divider { cursor: default; }
+.az-divider.az-dragging ~ .az-side, .az-index:has(.az-dragging) { user-select: none; }
 @media (max-width: 900px) { .az-divider { display: none; } }

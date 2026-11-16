@@ -150,8 +150,45 @@
       (set! (.-title b) (if collapsed? "Show side panel" "Hide side panel")))
     (try (.setItem js/localStorage collapsed-key (str collapsed?)) (catch :default _ nil))))
 
+;;; Side pane width, set by dragging the divider; kept in localStorage
+
+(def ^:private width-key "alzabo.side-width")
+
+(defn- set-side-width!
+  "Fix the side pane at `px` wide, clamped so neither pane gets too narrow."
+  [side px]
+  (let [total (.-clientWidth (.-parentNode side))
+        px (-> px (max 240) (min (- total 300)))]
+    (set! (.. side -style -flex) (str "0 0 " px "px"))
+    px))
+
+(defn- install-divider-drag!
+  [divider side]
+  (let [drag (atom nil)]
+    (when-let [saved (try (.getItem js/localStorage width-key) (catch :default _ nil))]
+      (set-side-width! side (js/parseFloat saved)))
+    (.addEventListener divider "pointerdown"
+                       (fn [e]
+                         (when (and (zero? (.-button e))
+                                    (not= "BUTTON" (.. e -target -tagName))
+                                    (pos? (.-offsetWidth side))) ;not collapsed
+                           (.preventDefault e)
+                           (.setPointerCapture divider (.-pointerId e))
+                           (.add (.-classList divider) "az-dragging")
+                           (reset! drag {:x (.-clientX e) :w (.-offsetWidth side)}))))
+    (.addEventListener divider "pointermove"
+                       (fn [e]
+                         (when-let [{:keys [x w]} @drag]
+                           (set-side-width! side (- w (- (.-clientX e) x))))))
+    (.addEventListener divider "pointerup"
+                       (fn [_]
+                         (when @drag
+                           (reset! drag nil)
+                           (.remove (.-classList divider) "az-dragging")
+                           (try (.setItem js/localStorage width-key (str (.-offsetWidth side))) (catch :default _ nil)))))))
+
 (defn install-side-toggle!
-  "Add a divider with a show/hide button for the side pane, restoring the saved state."
+  "Add a draggable divider with a show/hide button for the side pane, restoring the saved state."
   []
   (when-let [side (.querySelector js/document ".az-side")]
     (let [divider (.createElement js/document "div")
@@ -162,4 +199,5 @@
                          #(set-side-collapsed! (not (.contains (.-classList (.querySelector js/document ".az-index")) "az-collapsed"))))
       (.appendChild divider b)
       (.insertBefore (.-parentNode side) divider side)
+      (install-divider-drag! divider side)
       (set-side-collapsed! (= "true" (try (.getItem js/localStorage collapsed-key) (catch :default _ nil)))))))
