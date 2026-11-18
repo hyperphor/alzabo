@@ -33,6 +33,9 @@
             :label-wrap 14
             ;; Run Graphviz unflatten with this -l level to stagger wide ranks of leaves (nil: don't)
             :unflatten 4
+            ;; Lay out inheritance alone, components packed into a block, then draw relations straight over it.
+            ;; For big, shallow taxonomies, which dot otherwise makes very wide; ignores :clusters?
+            :pack? false
             }})
 
 (defn- with-graph-defaults
@@ -305,11 +308,32 @@
     dot))
 
 ;;; Requires installation of graphviz ('brew install graphviz' on Mac)
+(defn- graphviz
+  "Output of Graphviz `cmd` run with `args` on `dot`."
+  [cmd dot & args]
+  (let [{:keys [exit out err]} (apply shell/sh cmd (concat args [:in dot]))]
+    (if (zero? exit) out (throw (ex-info (str cmd " failed: " err) {:args args})))))
+
+(defn- packed-svg
+  "SVG of `spec` with isa edges laid out alone, components packed, and rel edges then drawn as straight lines."
+  [spec levels]
+  (let [rel? #(= "rel" (:class (nth % 2)))
+        laid (graphviz "dot" (unflatten (graph/spec->dot (update spec :edges #(remove rel? %))) levels)
+                       "-Gpack=true" "-Gpackmode=node" "-Tdot")
+        rels (filter #(s/includes? % " -> ")
+                     (s/split-lines (graph/spec->dot {:edges (filter rel? (:edges spec))})))
+        close (s/last-index-of laid "}")]
+    (graphviz "neato" (str (subs laid 0 close) (s/join "\n" rels) "\n}\n") "-n2" "-Gsplines=false" "-Tsvg")))
+
 (defn- write-graphviz
   "Write `dot-file` and <dot-file>.svg for `schema`; returns the SVG."
   [schema dot-file]
-  (let [dot (add-clusters (graph/spec->dot (graph-spec schema)) (cluster-specs schema))
-        svg (graph/dot->format (unflatten dot (get-in (with-graph-defaults schema) [:render :unflatten])) "svg")]
+  (let [{levels :unflatten pack? :pack?} (:render (with-graph-defaults schema))
+        spec (graph-spec schema)
+        dot (add-clusters (graph/spec->dot spec) (cluster-specs schema))
+        svg (if pack?
+              (packed-svg spec levels)
+              (graph/dot->format (unflatten dot levels) "svg"))]
     (println "Writing " dot-file)
     (spit dot-file dot)
     (spit (str dot-file ".svg") svg)

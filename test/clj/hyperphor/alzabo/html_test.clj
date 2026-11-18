@@ -102,3 +102,24 @@
       (is (not (re-find #"<\?xml|<!DOCTYPE svg" index))))
     (is (= {:kinds #{:b} :edges #{"r__a__b__b" "r__a__bs0__b" "r__a__bs1__b" "isa__b__a"}}
            (get (render/adjacency schema) :a)))))
+
+(defn- graph-aspect
+  "Width / height of the graph in `index`."
+  [index]
+  (let [[_ w h] (re-find #"viewBox=\"[\d.]+ [\d.]+ ([\d.]+) ([\d.]+)\"" index)]
+    (/ (parse-double w) (parse-double h))))
+
+(deftest test-packed-layout
+  (let [kinds (merge {:root {:fields {:link {:type :k0}}}}
+                     (into {} (for [i (range 40)] [(keyword (str "k" i)) {:extends :root :fields {}}]))
+                     (into {} (for [i (range 40)] [(keyword (str "loner" i)) {:fields {}}])))
+        schema {:title "t" :version "1" :kinds kinds :render {:taxonomy? true}}
+        render (fn [s] (let [out (str (fs/temp-dir "alzabo") "/")]
+                         (schema->html s out)
+                         (slurp (str out "index.html"))))
+        flat (render schema)
+        packed (render (assoc-in schema [:render :pack?] true))]
+    (is (< (* 4 (graph-aspect packed)) (graph-aspect flat)))
+    (is (re-find #"<g id=\"k__loner7\" class=\"node kind cat__default\"" packed))
+    (is (re-find #"<g id=\"r__root__link__k0\" class=\"edge rel\"" packed))
+    (is (re-find #"<g id=\"isa__k3__root\" class=\"edge isa\"" packed))))
