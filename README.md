@@ -118,4 +118,5 @@ Alzabo can generate a complete domain ontology for you using an LLM, including i
 - 1.3.4  Only generate edge labels where there's a need
 - 1.3.5  Make edge labels plural-aware, upgrade deps
 - 1.3.6  Fix Entities section rendering blank for single-category schemas
+- 2.1.0  Search matches camelCase name words and ranks name matches first; packed graph layout (`:pack?`) for large taxonomies
 
