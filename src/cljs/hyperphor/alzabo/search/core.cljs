@@ -127,10 +127,19 @@
 (defn- regex-quote [s]
   (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&"))
 
+(defn- caseless
+  "Regex source matching s in either case, without the i flag (which would spoil camelCase boundaries)."
+  [s]
+  (apply str (for [c s
+                   :let [l (.toLowerCase c) u (.toUpperCase c)]]
+               (if (= l u) (regex-quote c) (str "[" l u "]")))))
+
 (defn highlight-name
+  "name as hiccup, with each match of typed at a word or camelCase boundary in bold."
   [name typed]
   (when name
-    (into [] (cons :span (re-substitute (re-pattern (str "(?i)\\b" (regex-quote typed))) name (fn [match] [:b match]))))))
+    (into [] (cons :span (re-substitute (re-pattern (str "(?:\\b|(?<=[a-z0-9])(?=[A-Z]))" (caseless typed)))
+                                        name (fn [match] [:b match]))))))
 
 ;;; Also used for enum links, so slightly misnamed
 (defn kind-link
